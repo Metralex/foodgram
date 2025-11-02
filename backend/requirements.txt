@@ -1,11 +1,32 @@
-requests==2.26.0
-Django==3.2.25
-djangorestframework==3.13.1
-django-filter==23.5
-python-dotenv==0.20.0
-psycopg2-binary==2.9.3
-djoser==2.2.3
-gunicorn==20.1.0
-Pillow==9.3.0
-drf-extra-fields==3.7.0
-django-extensions==3.2.3
+# Core Django
+Django==4.2.16
+
+# Django REST Framework
+djangorestframework==3.15.2
+
+# Authentication
+djoser==2.2.2
+
+# Database
+psycopg[binary]==3.2.3
+
+# Filtering
+django-filter==24.2
+
+# Image processing
+Pillow==10.4.0
+
+# WSGI server
+gunicorn==23.0.0
+
+# HTTP requests
+requests==2.32.3
+
+# Environment variables
+python-dotenv==1.0.1
+
+# Additional DRF fields
+drf-extra-fields==3.7.1
+
+# Django extensions
+django-extensions==3.5.0
