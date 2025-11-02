@@ -19,28 +19,22 @@ const Technologies = () => {
           <div className={styles.text}>
             <ul className={styles.textItem}>
               <li className={styles.textItem}>
-                <a href="https://www.python.org/downloads/release/python-390/" className={styles.textLink}>Python 3.9</a>
+                Python
               </li>
               <li className={styles.textItem}>
-                <a href="https://docs.djangoproject.com/en/5.1/releases/3.2/" className={styles.textLink}>Django 3.2</a>
+                Django
               </li>
               <li className={styles.textItem}>
-                <a href="https://www.django-rest-framework.org/community/3.0-announcement/" className={styles.textLink}>Django REST Framework 3.13</a>
+                Django REST Framework
               </li>
               <li className={styles.textItem}>
-              <a href="https://pypi.org/project/djoser/" className={styles.textLink}>Djoser</a>
-              </li>
-              <li className={styles.textItem}>
-                <a href="https://www.postgresql.org/" className={styles.textLink}>PostgreSQL</a>
-              </li>
-              <li className={styles.textItem}>
-                <a href="https://www.docker.com/" className={styles.textLink}>Docker</a>
+                Djoser
               </li>
             </ul>
           </div>
         </div>
       </div>
-
+      
     </Container>
   </Main>
 }
