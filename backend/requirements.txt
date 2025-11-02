@@ -26,7 +26,7 @@ requests==2.32.3
 python-dotenv==1.0.1
 
 # Additional DRF fields
-drf-extra-fields==3.7.1
+drf-extra-fields==3.7.0
 
 # Django extensions
 django-extensions==3.5.0
