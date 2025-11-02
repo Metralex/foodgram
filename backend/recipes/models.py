@@ -250,7 +250,6 @@ class Recipe(models.Model):
     def get_absolute_url(self):
         return reverse('recipes:short_link', args=[self.pk])
 
-    @staticmethod
     def generate_short(self):
         for _ in range(self.MAX_ATTEMPTS):
             short = ''.join(
