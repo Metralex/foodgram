@@ -6,8 +6,12 @@ separated from models and views for better maintainability.
 """
 from random import choices
 from string import ascii_letters, digits
+from typing import TYPE_CHECKING
 
-from .models import Error, FieldLength, Recipe
+from .constants import Error, FieldLength
+
+if TYPE_CHECKING:
+    from .models import Recipe
 
 
 class ShortUrlCodeGenerator:
@@ -28,6 +32,9 @@ class ShortUrlCodeGenerator:
         Raises:
             RuntimeError: If unable to generate unique code after MAX_ATTEMPTS.
         """
+        # Import here to avoid circular import
+        from .models import Recipe
+
         for _ in range(cls.MAX_ATTEMPTS):
             code = ''.join(choices(cls.AVAILABLE_CHARS, k=cls.CODE_LENGTH))
             if not Recipe.objects.filter(short_url_code=code).exists():
@@ -35,7 +42,7 @@ class ShortUrlCodeGenerator:
         raise RuntimeError(Error.SHORT_URL_CODE)
 
     @classmethod
-    def ensure_unique_code(cls, recipe: Recipe) -> str:
+    def ensure_unique_code(cls, recipe: 'Recipe') -> str:
         """
         Ensure recipe has a unique short URL code.
 
@@ -51,6 +58,9 @@ class ShortUrlCodeGenerator:
         Raises:
             RuntimeError: If unable to generate unique code after MAX_ATTEMPTS.
         """
+        # Import here to avoid circular import
+        from .models import Recipe
+
         if recipe.short_url_code:
             return recipe.short_url_code
 

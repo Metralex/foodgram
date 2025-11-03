@@ -10,7 +10,8 @@ from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
 from rest_framework.exceptions import ValidationError
 
-from recipes.models import Error, Favorite, Recipe, ShoppingCart, Subscription
+from recipes.constants import Error
+from recipes.models import Favorite, Recipe, ShoppingCart, Subscription
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import AbstractUser

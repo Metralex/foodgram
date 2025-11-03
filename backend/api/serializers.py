@@ -14,11 +14,10 @@ from djoser.serializers import UserSerializer as DjoserUserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
+from recipes.constants import Error, MinValue
 from recipes.models import (
-    Error,
     Favorite,
     Ingredient,
-    MinValue,
     Recipe,
     RecipeIngredient,
     ShoppingCart,
