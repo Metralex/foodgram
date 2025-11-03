@@ -1,3 +1,9 @@
+"""
+API views for foodgram application.
+
+This module contains ViewSets for handling HTTP requests
+and delegating business logic to service classes.
+"""
 from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
@@ -8,23 +14,20 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import SAFE_METHODS, AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from recipes.models import (
-    Error,
     Favorite,
     Ingredient,
     Recipe,
     RecipeIngredient,
     ShoppingCart,
-    Subscription,
     Tag,
 )
 
-from . import filters, pagination, permissions, serializers, utils
+from . import filters, pagination, permissions, serializers, services, utils
 
 
 User = get_user_model()
@@ -64,7 +67,14 @@ class UserViewSet(DjoserUserViewSet):
         pagination_class=pagination.LimitPageNumberPagination,
     )
     def subscriptions(self, request):
-        queryset = User.objects.filter(authors__subscriber=request.user)
+        """
+        Get list of users that the current user is subscribed to.
+
+        Returns paginated list of users with their recipes.
+        """
+        queryset = services.SubscriptionService.get_subscriptions_queryset(
+            request.user
+        )
         serializer = serializers.ReadSubscriptionSerializer(
             self.paginate_queryset(queryset),
             many=True,
@@ -74,28 +84,23 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=True,
-        methods=(
-            'POST',
-            'DELETE',
-        ),
+        methods=('POST', 'DELETE'),
     )
     def subscribe(self, request, id):
+        """
+        Subscribe or unsubscribe to a user.
+
+        POST: Create subscription to user with given id.
+        DELETE: Remove subscription to user with given id.
+        """
         subscriber = request.user
         author = get_object_or_404(User, pk=id)
+
         if request.method == 'DELETE':
-            get_object_or_404(
-                Subscription, author=author, subscriber=subscriber
-            ).delete()
+            services.SubscriptionService.unsubscribe(subscriber, author)
             return Response(status=HTTPStatus.NO_CONTENT)
-        if subscriber == author:
-            raise ValidationError(
-                dict(error=Error.CANNOT_SUBSCRIBE_TO_YOURSELF)
-            )
-        item, created = Subscription.objects.get_or_create(
-            author=author, subscriber=subscriber
-        )
-        if not created:
-            raise ValidationError(dict(error=Error.ALREADY_SUBSCRIBED))
+
+        services.SubscriptionService.subscribe(subscriber, author)
         return Response(
             serializers.ReadSubscriptionSerializer(
                 author, context={'request': request}
@@ -121,38 +126,86 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = (
-        Recipe.objects.prefetch_related('tags', 'ingredients')
-        .select_related('author')
-        .all()
-    )
+    """
+    ViewSet for recipe operations.
+
+    Provides CRUD operations and custom actions for recipes.
+    Optimized queryset with prefetch_related for better performance.
+    """
     permission_classes = (permissions.IsAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = filters.RecipeFilterSet
 
+    def get_queryset(self):
+        """
+        Get queryset with optimizations for list/detail views.
+
+        Prefetches related objects to minimize database queries.
+        """
+        queryset = (
+            Recipe.objects
+            .select_related('author')
+            .prefetch_related(
+                'tags',
+                'ingredients',
+                'recipeingredients__ingredient'
+            )
+        )
+
+        # Prefetch user-specific data if authenticated
+        user = self.request.user
+        if user.is_authenticated:
+            from django.db.models import Prefetch
+            queryset = queryset.prefetch_related(
+                Prefetch(
+                    'favorites',
+                    queryset=Favorite.objects.filter(user=user),
+                    to_attr='_user_favorites'
+                ),
+                Prefetch(
+                    'shoppingcarts',
+                    queryset=ShoppingCart.objects.filter(user=user),
+                    to_attr='_user_shopping_carts'
+                )
+            )
+        return queryset
+
     def get_serializer_class(self):
+        """Return appropriate serializer based on request method."""
         if self.request.method in SAFE_METHODS:
             return serializers.ReadRecipeSerializer
         return serializers.WriteRecipeSerializer
 
     def perform_create(self, serializer):
+        """Set recipe author to current user on creation."""
         serializer.save(author=self.request.user)
 
     @action(detail=True, url_path='get-link')
     def get_link(self, request, pk=None):
-        short_url_code = get_object_or_404(Recipe, pk=pk).short_url_code
+        """
+        Get short URL link for recipe.
+
+        Returns absolute URL for recipe's short link.
+        """
+        recipe = get_object_or_404(Recipe, pk=pk)
         short_url = request.build_absolute_uri(
-            reverse('short_url', args=(short_url_code,))
+            reverse('short_url', args=(recipe.short_url_code,))
         )
         return Response({'short-link': short_url}, status=HTTPStatus.OK)
 
     @action(detail=False)
     def download_shopping_cart(self, request):
+        """
+        Download shopping cart as text file.
+
+        Returns aggregated ingredients and recipe list from user's
+        shopping cart as downloadable text file.
+        """
         ingredients = (
             RecipeIngredient.objects.filter(
                 recipe__shoppingcarts__user=request.user
             )
-            .select_related('recipe', 'ingredient')
+            .select_related('ingredient')
             .values(
                 'ingredient__name',
                 'ingredient__measurement_unit',
@@ -163,45 +216,58 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipes = Recipe.objects.filter(
             shoppingcarts__user=request.user
         ).distinct()
+        file_content = utils.make_shopping_cart_file(ingredients, recipes)
         return FileResponse(
-            utils.make_shopping_cart_file(ingredients, recipes),
+            file_content,
             as_attachment=True,
             filename='shopping_cart.txt',
             content_type='text/plain',
         )
 
-    @staticmethod
-    def _favorite_shopping_cart_logic(
-        request, error_message_add, pk, model,
-    ):
+    @action(detail=True, methods=('POST', 'DELETE'))
+    def favorite(self, request, pk):
+        """
+        Add or remove recipe from favorites.
+
+        POST: Add recipe to favorites.
+        DELETE: Remove recipe from favorites.
+        """
         recipe = get_object_or_404(Recipe, pk=pk)
+
         if request.method == 'DELETE':
-            get_object_or_404(model, recipe=recipe, user=request.user).delete()
+            services.RecipeInteractionService.remove_from_favorites(
+                request.user, recipe
+            )
             return Response(status=HTTPStatus.NO_CONTENT)
-        item, created = model.objects.get_or_create(
-            user=request.user, recipe=recipe
+
+        services.RecipeInteractionService.add_to_favorites(
+            request.user, recipe
         )
-        if not created:
-            raise ValidationError(dict(error=error_message_add))
         return Response(
             serializers.ShortRecipeSerializer(recipe).data,
             status=HTTPStatus.CREATED,
         )
 
     @action(detail=True, methods=('POST', 'DELETE'))
-    def favorite(self, request, pk):
-        return self._favorite_shopping_cart_logic(
-            request,
-            error_message_add=Error.ALREADY_FAVORITED,
-            pk=pk,
-            model=Favorite,
-        )
-
-    @action(detail=True, methods=('POST', 'DELETE'))
     def shopping_cart(self, request, pk):
-        return self._favorite_shopping_cart_logic(
-            request,
-            error_message_add=Error.ALREADY_IN_SHOPPING_CART,
-            pk=pk,
-            model=ShoppingCart,
+        """
+        Add or remove recipe from shopping cart.
+
+        POST: Add recipe to shopping cart.
+        DELETE: Remove recipe from shopping cart.
+        """
+        recipe = get_object_or_404(Recipe, pk=pk)
+
+        if request.method == 'DELETE':
+            services.RecipeInteractionService.remove_from_shopping_cart(
+                request.user, recipe
+            )
+            return Response(status=HTTPStatus.NO_CONTENT)
+
+        services.RecipeInteractionService.add_to_shopping_cart(
+            request.user, recipe
+        )
+        return Response(
+            serializers.ShortRecipeSerializer(recipe).data,
+            status=HTTPStatus.CREATED,
         )

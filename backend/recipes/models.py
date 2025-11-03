@@ -1,13 +1,11 @@
-from random import choices
-from string import ascii_letters, digits
-
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
-from django.db import models, IntegrityError
+from django.db import IntegrityError, models
 from django.db.models.constraints import UniqueConstraint
 from django.urls import reverse
 
+from .services import ShortUrlCodeGenerator
 from .validators import validate_username
 
 
@@ -199,8 +197,11 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
-    MAX_ATTEMPTS = 30
-    AVAILIBLE_CHARS = ascii_letters + digits
+    """
+    Recipe model representing a cooking recipe with ingredients and tags.
+
+    Automatically generates a unique short URL code on save if not provided.
+    """
 
     name = models.CharField(
         verbose_name=VerboseName.NAME,
@@ -248,30 +249,34 @@ class Recipe(models.Model):
         return self.name
 
     def get_absolute_url(self):
+        """Get absolute URL for recipe detail view."""
         return reverse('recipes:short_link', args=[self.pk])
 
-    def generate_short(self):
-        for _ in range(self.MAX_ATTEMPTS):
-            short = ''.join(
-                choices(self.AVAILIBLE_CHARS, k=FieldLength.SHORT_URL_CODE)
-            )
-            if not Recipe.objects.filter(short_url_code=short).exists():
-                return short
-        raise RuntimeError(Error.SHORT_URL_CODE)
-
     def save(self, *args, **kwargs):
+        """
+        Save recipe instance, ensuring unique short URL code.
+
+        If short_url_code is not set, generates a unique one using
+        ShortUrlCodeGenerator service. Handles IntegrityError by
+        regenerating code if collision occurs.
+        """
         if not self.short_url_code:
-            self.short_url_code = self.generate_short()
+            ShortUrlCodeGenerator.ensure_unique_code(self)
+
         attempts = 0
-        while True:
+        while attempts < ShortUrlCodeGenerator.MAX_ATTEMPTS:
             try:
                 super().save(*args, **kwargs)
                 break
-            except IntegrityError:
-                attempts += 1
-                if attempts >= self.MAX_ATTEMPTS:
-                    raise RuntimeError(Error.SHORT_URL_CODE_GEN)
-                self.short_url_code = self.generate_short()
+            except IntegrityError as e:
+                # Only retry if error is about short_url_code uniqueness
+                if 'short_url_code' in str(e):
+                    attempts += 1
+                    if attempts >= ShortUrlCodeGenerator.MAX_ATTEMPTS:
+                        raise RuntimeError(Error.SHORT_URL_CODE_GEN)
+                    self.short_url_code = ShortUrlCodeGenerator.generate_code()
+                else:
+                    raise
 
 
 class RecipeIngredient(models.Model):
