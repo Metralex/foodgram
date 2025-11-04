@@ -30,7 +30,7 @@ backend на Django/DRF (поддерживает исторический API P
 
 | Слой          | Технологии                                                                 |
 |---------------|-----------------------------------------------------------------------------|
-| Backend       | Python 3.9, Django 4.2, Django REST Framework, Djoser, django-filter, Gunicorn |
+| Backend       | Python 3.12, Django 4.2, Django REST Framework, Djoser, django-filter, Gunicorn |
 | Frontend      | React, Node.js 21, SPA со статической сборкой                             |
 | База данных   | PostgreSQL 13 (по умолчанию), SQLite (для локальной разработки)           |
 | Инфраструктура| Docker & Docker Compose, Nginx, GitHub Actions, Docker Hub, bash/ssh       |
@@ -109,9 +109,9 @@ docker compose -f infra/docker-compose.production.yml exec backend python manage
 ### 6. Проверка
 
 - Web-интерфейс: http://localhost:10000/
-- Админка: http://localhost:10000/admin/
-- Документация (Redoc): http://localhost:10000/api/docs/
-- Скачивание списка покупок: http://localhost:10000/api/recipes/download_shopping_cart/
+- Админка: http://localhost:8000/admin/
+- Документация (Redoc): http://localhost:8000/api/docs/
+- Скачивание списка покупок: http://localhost:8000/api/recipes/download_shopping_cart/
 
 ## Локальная разработка без Docker
 
