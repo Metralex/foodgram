@@ -1,9 +1,13 @@
-name: Foodgram workflow
+name: Foodgram CI/CD
 
 on: push
 
+env:
+  BACKEND_IMAGE: metralex/foodgram_backend
+  FRONTEND_IMAGE: metralex/foodgram_frontend
+
 jobs:
-  python_tests:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -17,180 +21,82 @@ jobs:
           POSTGRES_DB: django_db
         ports:
           - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-    - name: Check out code
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip 
-        pip install flake8==6.0.0
-        pip install -r ./backend/requirements.txt
-
-    - name: Copy .env file
-      run: cp .env.example backend/.env
-
-    - name: Test with flake8 and django tests
-      env:
-        POSTGRES_USER: django_user
-        POSTGRES_PASSWORD: django_password
-        POSTGRES_DB: django_db
-        DB_HOST: 127.0.0.1
-        DB_PORT: 5432
-      run: |
-        python -m flake8 backend/
-        cd backend/
-        python manage.py test
-
-  build_backend_and_push_to_docker_hub:
-    name: Push backend Docker image to DockerHub
-    runs-on: ubuntu-latest
-    needs: python_tests
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          fetch-depth: 2
+          python-version: ${{ matrix.python-version }}
 
-      - name: Check if backend has changes
-        id: check_changes_backend
-        run: |
-          git fetch origin ${{ github.ref }}
-          if git diff --quiet HEAD~1 HEAD -- backend/; then
-            echo "backend_changed=false" >> $GITHUB_ENV
-          else
-            echo "backend_changed=true" >> $GITHUB_ENV
-          fi
+      - run: |
+          python -m pip install --upgrade pip
+          pip install flake8==6.0.0 -r ./backend/requirements.txt
 
-      - name: Log change detection
-        run: | 
-          echo "Backend changed: ${{ env.backend_changed }}"
+      - run: cp .env.example backend/.env
 
-      - name: Skip build (no changes)
-        if: env.backend_changed == 'false'
-        run: echo "No changes in backend. Skipping build."
+      - run: |
+          python -m flake8 backend/ --count --select=E9,F63,F7,F82
+          cd backend && python manage.py test
+        env:
+          POSTGRES_USER: django_user
+          POSTGRES_PASSWORD: django_password
+          POSTGRES_DB: django_db
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
 
-      - name: Set up Docker Buildx
-        if: env.backend_changed == 'true'
-        uses: docker/setup-buildx-action@v2
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
 
-      - name: Login to Docker
-        if: env.backend_changed == 'true'
+      - name: Build backend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend/
+          push: false
+          load: true
+          tags: ${{ env.BACKEND_IMAGE }}:latest
+
+      - name: Build frontend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend/
+          push: false
+          load: true
+          tags: ${{ env.FRONTEND_IMAGE }}:latest
+
+      - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ vars.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Push to DockerHub
-        if: env.backend_changed == 'true'
+      - name: Push backend
         uses: docker/build-push-action@v4
         with:
           context: ./backend/
           push: true
-          tags: ${{ vars.DOCKER_USERNAME }}/foodgram_backend:latest
+          tags: ${{ env.BACKEND_IMAGE }}:latest
 
-  build_frontend_and_push_to_docker_hub:
-    name: Push frontend Docker image to DockerHub
-    runs-on: ubuntu-latest
-    needs: python_tests
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
-
-      - name: Check if frontend has changes
-        id: check_changes_frontend
-        run: |
-          git fetch origin ${{ github.ref }}
-          if git diff --quiet HEAD~1 HEAD -- frontend/; then
-            echo "frontend_changed=false" >> $GITHUB_ENV
-          else
-            echo "frontend_changed=true" >> $GITHUB_ENV
-          fi
-
-      - name: Log change detection
-        run: | 
-          echo "Frontend changed: ${{ env.frontend_changed }}"
-
-      - name: Skip build (no changes)
-        if: env.frontend_changed == 'false'
-        run: echo "No changes in frontend. Skipping build."
-
-      - name: Set up Docker Buildx
-        if: env.frontend_changed == 'true'
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker
-        if: env.frontend_changed == 'true'
-        uses: docker/login-action@v2
-        with:
-          username: ${{ vars.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Push to DockerHub
-        if: env.frontend_changed == 'true'
+      - name: Push frontend
         uses: docker/build-push-action@v4
         with:
           context: ./frontend/
           push: true
-          tags: ${{ vars.DOCKER_USERNAME }}/foodgram_frontend:latest
+          tags: ${{ env.FRONTEND_IMAGE }}:latest
 
   deploy:
     runs-on: ubuntu-latest
-    needs:
-      - build_backend_and_push_to_docker_hub
-      - build_frontend_and_push_to_docker_hub
+    needs: build
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
+      - uses: actions/checkout@v3
 
-      - name: Check if docs have changes
-        id: check_changes_docs
-        run: |
-          git fetch origin ${{ github.ref }}
-          if git diff --quiet HEAD~1 HEAD -- docs/; then
-            echo "docs_changed=false" >> $GITHUB_ENV
-          else
-            echo "docs_changed=true" >> $GITHUB_ENV
-          fi
+      - run: echo "${{ secrets.ENV_FILE_CONTENTS }}" > .env
 
-      - name: Log change detection
-        run: | 
-          echo "Docs changed: ${{ env.docs_changed }}"
-
-      - name: Check if infra has changes
-        id: check_changes_infra
-        run: |
-          git fetch origin ${{ github.ref }}
-          if git diff --quiet HEAD~1 HEAD -- infra/; then
-            echo "infra_changed=false" >> $GITHUB_ENV
-          else
-            echo "infra_changed=true" >> $GITHUB_ENV
-          fi
-
-      - name: Log change detection
-        run: | 
-          echo "Infra changed: ${{ env.infra_changed }}"
-
-      - name: Create .env file
-        run: |
-          echo "${{ secrets.ENV_FILE_CONTENTS }}" > .env
-
-      - name: Copy .env file via ssh
-        uses: appleboy/scp-action@master
+      - uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
@@ -199,43 +105,16 @@ jobs:
           source: ".env"
           target: "foodgram"
 
-      - name: Copy docs via ssh
-        if: env.docs_changed == 'true'
-        uses: appleboy/scp-action@master
+      - uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          source: "docs/"
+          source: "infra/"
           target: "foodgram"
 
-      - name: Copy nginx.conf via ssh
-        if: env.infra_changed == 'true'
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          source: "infra/nginx.conf"
-          target: "foodgram"
-          strip_components: 1
-
-      - name: Copy docker-compose.production.yml via ssh
-        if: env.infra_changed == 'true'
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          source: "infra/docker-compose.production.yml"
-          target: "foodgram"
-          strip_components: 1
-
-      - name: Execute remote ssh commands to deploy
-        uses: appleboy/ssh-action@master
+      - uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
@@ -243,42 +122,24 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             cd foodgram
-            COMPOSE_FILE=docker-compose.production.yml
-            sudo docker compose -f $COMPOSE_FILE pull
-            sudo docker compose -f $COMPOSE_FILE down
-            sudo docker compose -f $COMPOSE_FILE up -d
+            sudo docker compose -f infra/docker-compose.production.yml pull
+            sudo docker compose -f infra/docker-compose.production.yml down
+            sudo docker compose -f infra/docker-compose.production.yml up -d
             sleep 10
-            sudo docker compose -f $COMPOSE_FILE exec -T backend \
-              python manage.py migrate --no-input
-            sudo docker compose -f $COMPOSE_FILE exec -T backend \
-              python manage.py collectstatic --no-input
-            sudo docker compose -f $COMPOSE_FILE exec -T backend \
-              cp -r /app/collected_static/. /backend_static/static/
+            sudo docker compose -f infra/docker-compose.production.yml exec -T backend python manage.py migrate --no-input
+            sudo docker compose -f infra/docker-compose.production.yml exec -T backend python manage.py collectstatic --no-input
 
-  send_message:
+  notify:
     runs-on: ubuntu-latest
     needs: deploy
+    if: success()
     steps:
-      - name: Send success message
-        if: success()
-        uses: appleboy/telegram-action@master
+      - uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            Деплой успешно выполнен!
-            Отправил: ${{ github.actor }}
-            Коммит: ${{ github.event.commits[0].message }}
-            Ссылка: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
-
-      - name: Send error message
-        if: failure()
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            Ошибка при деплое!
-            Отправил: ${{ github.actor }}
-            Коммит: ${{ github.event.commits[0].message }}
-            Ссылка: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
+            ✅ Deployment successful!
+            Author: ${{ github.actor }}
+            Repository: ${{ github.repository }}
+            Commit: ${{ github.event.commits[0].message }}
