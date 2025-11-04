@@ -1,19 +1,19 @@
 """
-Constants for recipes app.
+Константы для приложения recipes.
 
-This module contains all constant classes used across the recipes app
-to avoid circular imports.
+Модуль содержит все классы констант, используемые в приложении recipes,
+для избежания циклических импортов.
 """
 
 
 class MinValue:
-    """Minimum values for validation."""
+    """Минимальные значения для валидации."""
     COOKING_TIME = 1
     AMOUNT = 1
 
 
 class VerboseName:
-    """Verbose names for model fields."""
+    """Читаемые имена для полей моделей."""
     NAME = 'Название'
     SLUG = 'Идентификатор'
     TAG = 'Тег'
@@ -41,7 +41,7 @@ class VerboseName:
 
 
 class VerboseNamePlural:
-    """Plural verbose names for model fields."""
+    """Читаемые имена во множественном числе для полей моделей."""
     TAGS = 'Теги'
     INGREDIENTS = 'Продукты'
     RECIPES = 'Рецепты'
@@ -54,7 +54,7 @@ class VerboseNamePlural:
 
 
 class FieldLength:
-    """Field length constants for models."""
+    """Константы длины полей для моделей."""
     TAG = 32
     INGREDIENT = 128
     MEASUREMENT_UNIT = 64
@@ -67,7 +67,7 @@ class FieldLength:
 
 
 class Error:
-    """Error messages for validation and business logic."""
+    """Сообщения об ошибках для валидации и бизнес-логики."""
     COOKING_TIME = f'Не менее {MinValue.COOKING_TIME} мин. приготовления'
     AMOUNT = f'Не менее {MinValue.AMOUNT} ед. ингредиента'
     ALREADY_IN_SHOPPING_CART = 'Рецепт уже есть в списке покупок'

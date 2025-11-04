@@ -178,16 +178,17 @@ class Recipe(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        """Get absolute URL for recipe detail view."""
+        """Получить абсолютный URL для детального просмотра рецепта."""
         return reverse('recipes:short_link', args=[self.pk])
 
     def save(self, *args, **kwargs):
         """
-        Save recipe instance, ensuring unique short URL code.
+        Сохранить экземпляр рецепта, обеспечив уникальность кода
+        короткой ссылки.
 
-        If short_url_code is not set, generates a unique one using
-        ShortUrlCodeGenerator service. Handles IntegrityError by
-        regenerating code if collision occurs.
+        Если код не установлен, генерирует уникальный код с использованием
+        сервиса ShortUrlCodeGenerator. Обрабатывает IntegrityError путём
+        регенерации кода при возникновении коллизии.
         """
         if not self.short_url_code:
             ShortUrlCodeGenerator.ensure_unique_code(self)
@@ -198,7 +199,8 @@ class Recipe(models.Model):
                 super().save(*args, **kwargs)
                 break
             except IntegrityError as e:
-                # Only retry if error is about short_url_code uniqueness
+                # Повторяем только если ошибка касается уникальности
+                # short_url_code
                 if 'short_url_code' in str(e):
                     attempts += 1
                     if attempts >= ShortUrlCodeGenerator.MAX_ATTEMPTS:

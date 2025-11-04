@@ -1,8 +1,8 @@
 """
-Business logic services for recipes app.
+Бизнес-логика сервисов для приложения recipes.
 
-This module contains service classes that encapsulate business logic
-separated from models and views for better maintainability.
+Модуль содержит классы сервисов, которые инкапсулируют бизнес-логику,
+отделённую от моделей и представлений.
 """
 from random import choices
 from string import ascii_letters, digits
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class ShortUrlCodeGenerator:
-    """Service for generating unique short URL codes for recipes."""
+    """Сервис для генерации уникальных кодов коротких ссылок для рецептов."""
 
     MAX_ATTEMPTS = 30
     AVAILABLE_CHARS = ascii_letters + digits
@@ -24,15 +24,15 @@ class ShortUrlCodeGenerator:
     @classmethod
     def generate_code(cls) -> str:
         """
-        Generate a random short URL code.
+        Сгенерировать случайный код короткой ссылки.
 
-        Returns:
-            str: A random code of CODE_LENGTH characters.
+        Возвращает:
+            str: Случайный код из CODE_LENGTH символов.
 
-        Raises:
-            RuntimeError: If unable to generate unique code after MAX_ATTEMPTS.
+        Вызывает:
+            RuntimeError: Если не удаётся сгенерировать уникальный код.
         """
-        # Import here to avoid circular import
+        # Импортируем здесь, чтобы избежать циклического импорта
         from .models import Recipe
 
         for _ in range(cls.MAX_ATTEMPTS):
@@ -44,21 +44,22 @@ class ShortUrlCodeGenerator:
     @classmethod
     def ensure_unique_code(cls, recipe: 'Recipe') -> str:
         """
-        Ensure recipe has a unique short URL code.
+        Обеспечить наличие уникального кода короткой ссылки для рецепта.
 
-        Generates a unique code and assigns it to recipe instance.
-        Does not save the instance - caller should handle saving.
+        Генерирует уникальный код и назначает его экземпляру рецепта.
+        Не сохраняет экземпляр - вызывающая функция должна обработать
+        сохранение.
 
-        Args:
-            recipe: Recipe instance to assign code to.
+        Аргументы:
+            recipe: Экземпляр рецепта для назначения кода.
 
-        Returns:
-            str: The unique short URL code.
+        Возвращает:
+            str: Уникальный код короткой ссылки.
 
-        Raises:
-            RuntimeError: If unable to generate unique code after MAX_ATTEMPTS.
+        Вызывает:
+            RuntimeError: Если не удаётся сгенерировать уникальный код.
         """
-        # Import here to avoid circular import
+        # Импортируем здесь, чтобы избежать циклического импорта
         from .models import Recipe
 
         if recipe.short_url_code:
@@ -67,7 +68,7 @@ class ShortUrlCodeGenerator:
         attempts = 0
         while attempts < cls.MAX_ATTEMPTS:
             code = cls.generate_code()
-            # Check if code is unique before assigning
+            # Проверяем уникальность кода перед назначением
             if not Recipe.objects.filter(short_url_code=code).exists():
                 recipe.short_url_code = code
                 return code
