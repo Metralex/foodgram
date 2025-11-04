@@ -189,7 +189,7 @@ FORBIDDEN_USERNAMES = ('me',)
 AVATARS_PATH = 'users/avatars'
 RECIPES_IMAGES_PATH = 'recipes/images/'
 
-# For HTTPS  https://stackoverflow.com/questions/62047354/build-absolute-uri-with-https-behind-reverse-proxy
+# HTTPS  https://stackoverflow.com/questions/62047354/build-absolute-uri-with-https-behind-reverse-proxy
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
