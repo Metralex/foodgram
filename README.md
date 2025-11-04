@@ -108,7 +108,7 @@ docker compose -f infra/docker-compose.production.yml exec backend python manage
 
 ### 6. Проверка
 
-- Web-интерфейс: http://localhost:10000/
+- Web-интерфейс: http://localhost:8000/
 - Админка: http://localhost:8000/admin/
 - Документация (Redoc): http://localhost:8000/api/docs/
 - Скачивание списка покупок: http://localhost:8000/api/recipes/download_shopping_cart/
@@ -174,7 +174,5 @@ Workflow `.github/workflows/main.yml` выполняет:
 
 ## Автор
 
-Проект разработан **Metralex** — <https://github.com/Metralex>
-
-Связь, предложения и багрепорты — через Issues или Pull Requests в репозитории.
+**Metralex** — <https://github.com/Metralex>
 
