@@ -1,8 +1,8 @@
 """
-API serializers for foodgram application.
+Валидирующие схемы для API приложения Foodgram.
 
-This module contains serializers for converting model instances
-to/from JSON with validation and business logic.
+Модуль содержит сериализаторы для преобразования экземпляров моделей
+в/из JSON с валидацией и бизнес-логикой.
 """
 from collections import Counter
 from typing import TYPE_CHECKING
@@ -33,22 +33,25 @@ User = get_user_model()
 
 class UserSerializer(DjoserUserSerializer):
     """
-    User serializer with subscription status.
+    Сериализатор пользователя со статусом подписки.
 
-    Extends Djoser user serializer to include avatar and
-    subscription status for the current user.
+    Расширяет сериализатор Djoser для включения аватара и
+    статуса подписки текущего пользователя.
     """
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = (*DjoserUserSerializer.Meta.fields, 'avatar', 'is_subscribed')
+        fields = (
+            *DjoserUserSerializer.Meta.fields, 'avatar', 'is_subscribed'
+        )
 
     def get_is_subscribed(self, author: 'AbstractUser') -> bool:
         """
-        Check if current user is subscribed to this author.
+        Проверить, подписан ли текущий пользователь на этого автора.
 
-        Uses prefetched data if available to avoid N+1 queries.
+        Использует предварительно загруженные данные, если доступны,
+        для избежания N+1 запросов.
         """
         request = self.context.get('request')
         if not request or not request.user.is_authenticated:
@@ -56,8 +59,9 @@ class UserSerializer(DjoserUserSerializer):
 
         user = request.user
 
-        # Optimized check - could be prefetched in future
-        # For now, direct query is acceptable as it's called once per user
+        # Оптимизированная проверка - в будущем может быть
+        # предварительно загружена. Сейчас прямой запрос приемлем,
+        # так как вызывается один раз для пользователя
 
         return Subscription.objects.filter(
             author=author, subscriber=user
@@ -65,6 +69,7 @@ class UserSerializer(DjoserUserSerializer):
 
 
 class AvatarSerializer(serializers.ModelSerializer):
+    """Сериализатор для загрузки аватара пользователя."""
     avatar = Base64ImageField()
 
     class Meta:
@@ -73,18 +78,21 @@ class AvatarSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор для категории/тега блюда."""
     class Meta:
         model = Tag
         fields = '__all__'
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для ингредиента/компонента."""
     class Meta:
         model = Ingredient
         fields = '__all__'
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для связи блюда с ингредиентом и количеством."""
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(), source='ingredient'
     )
@@ -107,10 +115,10 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 class ReadRecipeSerializer(serializers.ModelSerializer):
     """
-    Serializer for reading recipe data with full details.
+    Сериализатор для чтения данных блюда с полными деталями.
 
-    Includes tags, author, ingredients, and user interaction flags.
-    Optimized to minimize database queries.
+    Включает категории, автора, ингредиенты и флаги взаимодействия
+    пользователя. Оптимизирован для минимизации запросов БД.
     """
     tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
@@ -138,15 +146,16 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
 
     def get_is_in_shopping_cart(self, recipe: Recipe) -> bool:
         """
-        Check if recipe is in user's shopping cart.
+        Проверить, находится ли блюдо в списке покупок пользователя.
 
-        Uses prefetched data if available to avoid N+1 queries.
+        Использует предварительно загруженные данные, если доступны,
+        для избежания N+1 запросов.
         """
         user = self.context.get('request').user
         if not user.is_authenticated:
             return False
 
-        # Check if prefetched data is available
+        # Проверяем наличие предварительно загруженных данных
         if hasattr(recipe, '_user_shopping_carts'):
             return len(recipe._user_shopping_carts) > 0
 
@@ -156,15 +165,16 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, recipe: Recipe) -> bool:
         """
-        Check if recipe is in user's favorites.
+        Проверить, находится ли блюдо в избранном у пользователя.
 
-        Uses prefetched data if available to avoid N+1 queries.
+        Использует предварительно загруженные данные, если доступны,
+        для избежания N+1 запросов.
         """
         user = self.context.get('request').user
         if not user.is_authenticated:
             return False
 
-        # Check if prefetched data is available
+        # Проверяем наличие предварительно загруженных данных
         if hasattr(recipe, '_user_favorites'):
             return len(recipe._user_favorites) > 0
 
@@ -173,10 +183,11 @@ class ReadRecipeSerializer(serializers.ModelSerializer):
 
 class WriteRecipeSerializer(serializers.ModelSerializer):
     """
-    Serializer for creating and updating recipes.
+    Сериализатор для создания и обновления блюд.
 
-    Handles recipe creation/update with nested ingredients and tags.
-    Validates for duplicates and ensures all required fields are present.
+    Обрабатывает создание/обновление блюда с вложенными
+    ингредиентами и категориями. Валидирует на дубликаты и
+    обеспечивает наличие всех обязательных полей.
     """
     ingredients = serializers.ListField(
         child=RecipeIngredientSerializer(),
@@ -206,17 +217,18 @@ class WriteRecipeSerializer(serializers.ModelSerializer):
     @staticmethod
     def _check_duplicates(array: list, field_name: str) -> None:
         """
-        Check for duplicate values in array and raise validation error.
+        Проверить дубликаты в массиве и вызвать ошибку валидации.
 
-        Args:
-            array: List of values to check for duplicates.
-            field_name: Name of the field for error message.
+        Аргументы:
+            array: Список значений для проверки дубликатов.
+            field_name: Имя поля для сообщения об ошибке.
 
-        Raises:
-            ValidationError: If duplicates are found.
+        Вызывает:
+            ValidationError: Если найдены дубликаты.
         """
         counts = Counter(array)
-        duplicates = {item for item, count in counts.items() if count > 1}
+        duplicates = {item for item, count in counts.items()
+                      if count > 1}
         if duplicates:
             raise serializers.ValidationError(
                 {field_name: Error.DUPLICATES.format(duplicates)}
@@ -224,32 +236,32 @@ class WriteRecipeSerializer(serializers.ModelSerializer):
 
     def validate_tags(self, tags: list) -> list:
         """
-        Validate tags list for duplicates.
+        Валидировать список категорий на дубликаты.
 
-        Args:
-            tags: List of Tag instances.
+        Аргументы:
+            tags: Список экземпляров Tag.
 
-        Returns:
-            Validated tags list.
+        Возвращает:
+            Валидированный список категорий.
 
-        Raises:
-            ValidationError: If duplicate tags found.
+        Вызывает:
+            ValidationError: Если найдены дубликаты категорий.
         """
         self._check_duplicates([tag.id for tag in tags], 'tags')
         return tags
 
     def validate_ingredients(self, ingredients: list) -> list:
         """
-        Validate ingredients list for duplicates.
+        Валидировать список ингредиентов на дубликаты.
 
-        Args:
-            ingredients: List of ingredient dictionaries.
+        Аргументы:
+            ingredients: Список словарей ингредиентов.
 
-        Returns:
-            Validated ingredients list.
+        Возвращает:
+            Валидированный список ингредиентов.
 
-        Raises:
-            ValidationError: If duplicate ingredients found.
+        Вызывает:
+            ValidationError: Если найдены дубликаты ингредиентов.
         """
         self._check_duplicates(
             [item['ingredient'].id for item in ingredients],
@@ -259,16 +271,16 @@ class WriteRecipeSerializer(serializers.ModelSerializer):
 
     def validate_image(self, image) -> object:
         """
-        Validate that image is provided.
+        Валидировать наличие изображения.
 
-        Args:
-            image: Image file object.
+        Аргументы:
+            image: Объект файла изображения.
 
-        Returns:
-            Validated image.
+        Возвращает:
+            Валидированное изображение.
 
-        Raises:
-            ValidationError: If image is empty.
+        Вызывает:
+            ValidationError: Если изображение пусто.
         """
         if not image:
             raise serializers.ValidationError(Error.NO_IMAGE)
@@ -277,11 +289,13 @@ class WriteRecipeSerializer(serializers.ModelSerializer):
     @staticmethod
     def _save_ingredients(recipe: Recipe, ingredients: list) -> None:
         """
-        Save recipe ingredients using bulk_create for efficiency.
+        Сохранить ингредиенты блюда, используя bulk_create для
+        эффективности.
 
-        Args:
-            recipe: Recipe instance to attach ingredients to.
-            ingredients: List of ingredient dictionaries with keys:
+        Аргументы:
+            recipe: Экземпляр блюда, к которому нужно прикрепить
+                    ингредиенты.
+            ingredients: Список словарей ингредиентов с ключами:
                         ingredient, amount
         """
         RecipeIngredient.objects.bulk_create(
@@ -296,13 +310,13 @@ class WriteRecipeSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data: dict) -> Recipe:
         """
-        Create recipe with ingredients and tags.
+        Создать блюдо с ингредиентами и категориями.
 
-        Args:
-            validated_data: Validated recipe data.
+        Аргументы:
+            validated_data: Валидированные данные блюда.
 
-        Returns:
-            Created Recipe instance.
+        Возвращает:
+            Созданный экземпляр Recipe.
         """
         ingredients_data = validated_data.pop('ingredients')
         recipe = super().create(validated_data)
@@ -312,45 +326,46 @@ class WriteRecipeSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def update(self, recipe: Recipe, validated_data: dict) -> Recipe:
         """
-        Update recipe, optionally updating ingredients.
+        Обновить блюдо, опционально обновляя ингредиенты.
 
-        Args:
-            recipe: Recipe instance to update.
-            validated_data: Validated recipe data.
+        Аргументы:
+            recipe: Экземпляр блюда для обновления.
+            validated_data: Валидированные данные блюда.
 
-        Returns:
-            Updated Recipe instance.
+        Возвращает:
+            Обновленный экземпляр Recipe.
         """
         try:
             new_ingredients = validated_data.pop('ingredients')
             recipe.ingredients.clear()
             self._save_ingredients(recipe, new_ingredients)
         except KeyError:
-            # Ingredients not provided, keep existing ones
+            # Ингредиенты не предоставлены, сохраняем существующие
             pass
         return super().update(recipe, validated_data)
 
     def to_representation(self, recipe: Recipe) -> dict:
         """
-        Convert recipe instance to serialized representation.
+        Преобразовать экземпляр блюда в сериализованное представление.
 
-        Uses ReadRecipeSerializer for consistent output format.
+        Использует ReadRecipeSerializer для согласованного формата
+        вывода.
 
-        Args:
-            recipe: Recipe instance.
+        Аргументы:
+            recipe: Экземпляр блюда.
 
-        Returns:
-            Serialized recipe data.
+        Возвращает:
+            Сериализованные данные блюда.
         """
         return ReadRecipeSerializer(recipe, context=self.context).data
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
     """
-    Minimal recipe serializer for nested representations.
+    Минимальный сериализатор блюда для вложенных представлений.
 
-    Used in subscriptions and other places where full recipe data
-    is not needed.
+    Используется в подписках и других местах, где полные данные блюда
+    не требуются.
     """
 
     class Meta:
@@ -365,25 +380,28 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 
 class ReadSubscriptionSerializer(UserSerializer):
     """
-    Serializer for user subscription data.
+    Сериализатор для данных подписки пользователя.
 
-    Extends UserSerializer to include user's recipes with limit support.
+    Расширяет UserSerializer для включения рецептов пользователя с
+    поддержкой лимита.
     """
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.ReadOnlyField(source='recipes.count')
 
     class Meta(UserSerializer.Meta):
-        fields = (*UserSerializer.Meta.fields, 'recipes', 'recipes_count')
+        fields = (
+            *UserSerializer.Meta.fields, 'recipes', 'recipes_count'
+        )
 
     def get_recipes(self, user: 'AbstractUser') -> list:
         """
-        Get user's recipes with optional limit.
+        Получить рецепты пользователя с опциональным лимитом.
 
-        Args:
-            user: User instance to get recipes for.
+        Аргументы:
+            user: Экземпляр пользователя для получения рецептов.
 
-        Returns:
-            List of serialized recipe dictionaries.
+        Возвращает:
+            Список словарей сериализованных рецептов.
         """
         limit = int(
             self.context.get('request').GET.get('recipes_limit', 10**10)

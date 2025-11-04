@@ -1,8 +1,8 @@
 """
-API permissions for foodgram application.
+Разрешения для API приложения Foodgram.
 
-This module contains permission classes for controlling access
-to API endpoints based on user roles and object ownership.
+Модуль содержит классы разрешений для контроля доступа
+к API endpoints на основе ролей пользователей и владения объектом.
 """
 from typing import TYPE_CHECKING
 
@@ -16,28 +16,31 @@ if TYPE_CHECKING:
 
 class IsAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
     """
-    Permission class for recipe operations.
+    Класс разрешения для операций с блюдами.
 
-    Allows read access to all users, but write access only to recipe authors.
+    Позволяет доступ на чтение всем пользователям, но доступ на запись
+    только авторам блюда.
     """
 
     def has_object_permission(
         self, request: 'Request', view: 'APIView', obj: 'Recipe'
     ) -> bool:
         """
-        Check if user has permission to perform action on recipe.
+        Проверить, имеет ли пользователь разрешение выполнять
+        действие с блюдом.
 
-        Args:
-            request: HTTP request object.
-            view: View instance.
-            obj: Recipe instance.
+        Аргументы:
+            request: Объект HTTP запроса.
+            view: Экземпляр представления.
+            obj: Экземпляр блюда.
 
-        Returns:
-            True if user has permission, False otherwise.
+        Возвращает:
+            True если пользователь имеет разрешение, False в противном
+            случае.
         """
-        # Read permissions are allowed for any request
+        # Разрешения на чтение доступны для любого запроса
         if request.method in SAFE_METHODS:
             return True
 
-        # Write permissions are only allowed to the author
+        # Разрешения на запись только для автора
         return obj.author == request.user

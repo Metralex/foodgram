@@ -1,8 +1,8 @@
 """
-API views for foodgram application.
+Обработчики HTTP запросов для API приложения Foodgram.
 
-This module contains ViewSets for handling HTTP requests
-and delegating business logic to service classes.
+Модуль содержит ViewSet'ы для обработки HTTP запросов
+и делегирования бизнес-логики классам-сервисам.
 """
 from http import HTTPStatus
 
@@ -33,8 +33,11 @@ from . import filters, pagination, permissions, serializers, services, utils
 User = get_user_model()
 
 
-class UserViewSet(DjoserUserViewSet):
+class UserHandler(DjoserUserViewSet):
+    """Обработчик операций с пользователями."""
+
     def get_permissions(self):
+        """Получить разрешения в зависимости от действия."""
         if self.action == 'me':
             return (IsAuthenticated(),)
         if self.action == 'retrieve':
@@ -48,6 +51,7 @@ class UserViewSet(DjoserUserViewSet):
         url_path='me/avatar',
     )
     def avatar(self, request):
+        """Загрузить или удалить аватар пользователя."""
         user = request.user
         if request.method == 'DELETE':
             user.avatar.delete(save=True)
@@ -68,11 +72,11 @@ class UserViewSet(DjoserUserViewSet):
     )
     def subscriptions(self, request):
         """
-        Get list of users that the current user is subscribed to.
+        Получить список подписок текущего пользователя.
 
-        Returns paginated list of users with their recipes.
+        Возвращает постраничный список авторов с их рецептами.
         """
-        queryset = services.SubscriptionService.get_subscriptions_queryset(
+        queryset = services.FollowingProvider.get_subscriptions_queryset(
             request.user
         )
         serializer = serializers.ReadSubscriptionSerializer(
@@ -88,19 +92,19 @@ class UserViewSet(DjoserUserViewSet):
     )
     def subscribe(self, request, id):
         """
-        Subscribe or unsubscribe to a user.
+        Подписаться или отписаться от автора.
 
-        POST: Create subscription to user with given id.
-        DELETE: Remove subscription to user with given id.
+        POST: Создать подписку на автора с заданным id.
+        DELETE: Удалить подписку на автора с заданным id.
         """
         subscriber = request.user
         author = get_object_or_404(User, pk=id)
 
         if request.method == 'DELETE':
-            services.SubscriptionService.unsubscribe(subscriber, author)
+            services.FollowingProvider.unsubscribe(subscriber, author)
             return Response(status=HTTPStatus.NO_CONTENT)
 
-        services.SubscriptionService.subscribe(subscriber, author)
+        services.FollowingProvider.subscribe(subscriber, author)
         return Response(
             serializers.ReadSubscriptionSerializer(
                 author, context={'request': request}
@@ -109,14 +113,16 @@ class UserViewSet(DjoserUserViewSet):
         )
 
 
-class TagViewSet(viewsets.ReadOnlyModelViewSet):
+class ClassificationHandler(viewsets.ReadOnlyModelViewSet):
+    """Обработчик для работы с категориями блюд (теги)."""
     queryset = Tag.objects.all()
     serializer_class = serializers.TagSerializer
     pagination_class = None
     permission_classes = (AllowAny,)
 
 
-class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+class ElementHandler(viewsets.ReadOnlyModelViewSet):
+    """Обработчик для работы с ингредиентами."""
     queryset = Ingredient.objects.all()
     serializer_class = serializers.IngredientSerializer
     pagination_class = None
@@ -125,12 +131,13 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (AllowAny,)
 
 
-class RecipeViewSet(viewsets.ModelViewSet):
+class DishHandler(viewsets.ModelViewSet):
     """
-    ViewSet for recipe operations.
+    Обработчик для операций с блюдами (рецептами).
 
-    Provides CRUD operations and custom actions for recipes.
-    Optimized queryset with prefetch_related for better performance.
+    Предоставляет CRUD операции и специальные действия для блюд.
+    Оптимизированный queryset с prefetch_related для улучшения
+    производительности.
     """
     permission_classes = (permissions.IsAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
@@ -138,9 +145,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Get queryset with optimizations for list/detail views.
+        Получить queryset с оптимизациями для представлений
+        списка и деталей.
 
-        Prefetches related objects to minimize database queries.
+        Предварительно загружает связанные объекты для минимизации
+        запросов БД.
         """
         queryset = (
             Recipe.objects
@@ -152,7 +161,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         )
 
-        # Prefetch user-specific data if authenticated
+        # Предварительно загружаем данные, специфичные для пользователя
         user = self.request.user
         if user.is_authenticated:
             from django.db.models import Prefetch
@@ -171,21 +180,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_serializer_class(self):
-        """Return appropriate serializer based on request method."""
+        """Возвращает сериализатор в зависимости от типа запроса."""
         if self.request.method in SAFE_METHODS:
             return serializers.ReadRecipeSerializer
         return serializers.WriteRecipeSerializer
 
     def perform_create(self, serializer):
-        """Set recipe author to current user on creation."""
+        """Установить текущего пользователя как автора блюда."""
         serializer.save(author=self.request.user)
 
     @action(detail=True, url_path='get-link')
     def get_link(self, request, pk=None):
         """
-        Get short URL link for recipe.
+        Получить короткую URL ссылку для блюда.
 
-        Returns absolute URL for recipe's short link.
+        Возвращает абсолютный URL короткой ссылки блюда.
         """
         recipe = get_object_or_404(Recipe, pk=pk)
         short_url = request.build_absolute_uri(
@@ -196,10 +205,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False)
     def download_shopping_cart(self, request):
         """
-        Download shopping cart as text file.
+        Скачать список покупок в виде текстового файла.
 
-        Returns aggregated ingredients and recipe list from user's
-        shopping cart as downloadable text file.
+        Возвращает агрегированный список ингредиентов и рецептов
+        из корзины покупок пользователя в виде загружаемого
+        текстового файла.
         """
         ingredients = (
             RecipeIngredient.objects.filter(
@@ -216,7 +226,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipes = Recipe.objects.filter(
             shoppingcarts__user=request.user
         ).distinct()
-        file_content = utils.make_shopping_cart_file(ingredients, recipes)
+        file_content = utils.make_shopping_cart_file(
+            ingredients, recipes
+        )
         return FileResponse(
             file_content,
             as_attachment=True,
@@ -227,20 +239,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=('POST', 'DELETE'))
     def favorite(self, request, pk):
         """
-        Add or remove recipe from favorites.
+        Добавить или удалить блюдо из избранного.
 
-        POST: Add recipe to favorites.
-        DELETE: Remove recipe from favorites.
+        POST: Добавить блюдо в избранное.
+        DELETE: Удалить блюдо из избранного.
         """
         recipe = get_object_or_404(Recipe, pk=pk)
 
         if request.method == 'DELETE':
-            services.RecipeInteractionService.remove_from_favorites(
+            services.RecipeInteractionProvider.remove_from_favorites(
                 request.user, recipe
             )
             return Response(status=HTTPStatus.NO_CONTENT)
 
-        services.RecipeInteractionService.add_to_favorites(
+        services.RecipeInteractionProvider.add_to_favorites(
             request.user, recipe
         )
         return Response(
@@ -251,20 +263,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=('POST', 'DELETE'))
     def shopping_cart(self, request, pk):
         """
-        Add or remove recipe from shopping cart.
+        Добавить или удалить блюдо из списка покупок.
 
-        POST: Add recipe to shopping cart.
-        DELETE: Remove recipe from shopping cart.
+        POST: Добавить блюдо в список покупок.
+        DELETE: Удалить блюдо из списка покупок.
         """
         recipe = get_object_or_404(Recipe, pk=pk)
 
         if request.method == 'DELETE':
-            services.RecipeInteractionService.remove_from_shopping_cart(
+            services.RecipeInteractionProvider.remove_from_shopping_cart(
                 request.user, recipe
             )
             return Response(status=HTTPStatus.NO_CONTENT)
 
-        services.RecipeInteractionService.add_to_shopping_cart(
+        services.RecipeInteractionProvider.add_to_shopping_cart(
             request.user, recipe
         )
         return Response(

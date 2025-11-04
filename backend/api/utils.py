@@ -1,8 +1,8 @@
 """
-API utility functions for foodgram application.
+Служебные функции для API приложения Foodgram.
 
-This module contains utility functions for generating files,
-formatting data, and other helper operations.
+Модуль содержит вспомогательные функции для генерации файлов,
+форматирования данных и других вспомогательных операций.
 """
 from io import BytesIO
 from typing import Iterable, List
@@ -16,22 +16,23 @@ def make_shopping_cart_file(
     ingredients: Iterable[dict], recipes: Iterable
 ) -> BytesIO:
     """
-    Generate shopping cart text file content.
+    Сгенерировать содержимое текстового файла списка покупок.
 
-    Creates a formatted text document containing aggregated ingredients
-    and recipe list from user's shopping cart.
+    Создаёт отформатированный текстовый документ, содержащий
+    агрегированные ингредиенты и список рецептов из списка покупок
+    пользователя.
 
-    Args:
-        ingredients: Iterable of ingredient dictionaries with keys:
+    Аргументы:
+        ingredients: Итерируемый объект словарей ингредиентов с ключами:
                      ingredient__name, ingredient__measurement_unit, amount
-        recipes: Iterable of Recipe instances
+        recipes: Итерируемый объект экземпляров Recipe
 
-    Returns:
-        BytesIO: Buffer containing formatted text document
+    Возвращает:
+        BytesIO: Буфер, содержащий отформатированный текстовый документ
     """
     current_time = timezone.now().strftime(TIME_FORMAT)
 
-    # Format ingredients list
+    # Форматируем список ингредиентов
     ingredient_lines = [
         f'{index}. {item["ingredient__name"].capitalize()} '
         f'({item["ingredient__measurement_unit"]}) - '
@@ -39,13 +40,13 @@ def make_shopping_cart_file(
         for index, item in enumerate(ingredients, start=1)
     ]
 
-    # Format recipes list
+    # Форматируем список рецептов
     recipe_lines = [
         f'{index}. {recipe.name}'
         for index, recipe in enumerate(recipes, start=1)
     ]
 
-    # Combine all sections
+    # Объединяем все секции
     document_lines: List[str] = [
         f'Дата и время: {current_time}',
         '',

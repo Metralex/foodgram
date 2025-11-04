@@ -1,8 +1,8 @@
 """
-Business logic services for API operations.
+Бизнес-логика для операций API.
 
-This module contains service classes that handle business logic
-separated from views for better maintainability and testability.
+Модуль содержит классы-сервисы, которые обрабатывают бизнес-логику,
+отделённую от обработчиков для лучшей поддерживаемости и тестируемости.
 """
 from typing import TYPE_CHECKING
 
@@ -19,26 +19,26 @@ if TYPE_CHECKING:
 User = get_user_model()
 
 
-class SubscriptionService:
-    """Service for managing user subscriptions."""
+class FollowingProvider:
+    """Сервис для управления подписками между пользователями."""
 
     @staticmethod
     def subscribe(
         subscriber: 'AbstractUser', author: 'AbstractUser'
     ) -> Subscription:
         """
-        Create a subscription from subscriber to author.
+        Создать подписку от подписчика на автора.
 
-        Args:
-            subscriber: User who wants to subscribe.
-            author: User to subscribe to.
+        Аргументы:
+            subscriber: Пользователь, который хочет подписаться.
+            author: Пользователь, на которого подписываются.
 
-        Returns:
-            Subscription: Created subscription instance.
+        Возвращает:
+            Subscription: Созданный экземпляр подписки.
 
-        Raises:
-            ValidationError: If subscription already exists or
-                            user tries to subscribe to themselves.
+        Вызывает:
+            ValidationError: Если подписка уже существует или
+                            пользователь пытается подписаться на себя.
         """
         if subscriber == author:
             raise ValidationError(
@@ -58,14 +58,14 @@ class SubscriptionService:
         subscriber: 'AbstractUser', author: 'AbstractUser'
     ) -> None:
         """
-        Remove subscription from subscriber to author.
+        Удалить подписку от подписчика на автора.
 
-        Args:
-            subscriber: User who wants to unsubscribe.
-            author: User to unsubscribe from.
+        Аргументы:
+            subscriber: Пользователь, который хочет отписаться.
+            author: Пользователь, от которого отписываются.
 
-        Raises:
-            Http404: If subscription does not exist.
+        Вызывает:
+            Http404: Если подписка не существует.
         """
         from django.shortcuts import get_object_or_404
         get_object_or_404(
@@ -75,34 +75,38 @@ class SubscriptionService:
     @staticmethod
     def get_subscriptions_queryset(user: 'AbstractUser') -> QuerySet:
         """
-        Get queryset of users that the given user is subscribed to.
+        Получить queryset пользователей, на которых подписан данный
+        пользователь.
 
-        Args:
-            user: User to get subscriptions for.
+        Аргументы:
+            user: Пользователь, для которого получить подписки.
 
-        Returns:
-            QuerySet of User instances.
+        Возвращает:
+            QuerySet экземпляров User.
         """
         return User.objects.filter(authors__subscriber=user)
 
 
-class RecipeInteractionService:
-    """Service for managing recipe interactions (favorites, shopping cart)."""
+class RecipeInteractionProvider:
+    """Сервис для управления взаимодействиями с рецептами
+    (избранное, корзина)."""
 
     @staticmethod
-    def add_to_favorites(user: 'AbstractUser', recipe: Recipe) -> Favorite:
+    def add_to_favorites(
+        user: 'AbstractUser', recipe: Recipe
+    ) -> Favorite:
         """
-        Add recipe to user's favorites.
+        Добавить рецепт в избранное пользователя.
 
-        Args:
-            user: User who wants to favorite the recipe.
-            recipe: Recipe to add to favorites.
+        Аргументы:
+            user: Пользователь, который хочет добавить рецепт.
+            recipe: Рецепт для добавления в избранное.
 
-        Returns:
-            Favorite: Created favorite instance.
+        Возвращает:
+            Favorite: Созданный экземпляр избранного.
 
-        Raises:
-            ValidationError: If recipe is already in favorites.
+        Вызывает:
+            ValidationError: Если рецепт уже в избранном.
         """
         favorite, created = Favorite.objects.get_or_create(
             user=user, recipe=recipe
@@ -112,16 +116,18 @@ class RecipeInteractionService:
         return favorite
 
     @staticmethod
-    def remove_from_favorites(user: 'AbstractUser', recipe: Recipe) -> None:
+    def remove_from_favorites(
+        user: 'AbstractUser', recipe: Recipe
+    ) -> None:
         """
-        Remove recipe from user's favorites.
+        Удалить рецепт из избранного пользователя.
 
-        Args:
-            user: User who wants to remove the recipe.
-            recipe: Recipe to remove from favorites.
+        Аргументы:
+            user: Пользователь, который хочет удалить рецепт.
+            recipe: Рецепт для удаления из избранного.
 
-        Raises:
-            Http404: If favorite does not exist.
+        Вызывает:
+            Http404: Если избранное не существует.
         """
         from django.shortcuts import get_object_or_404
         get_object_or_404(Favorite, user=user, recipe=recipe).delete()
@@ -131,17 +137,17 @@ class RecipeInteractionService:
         user: 'AbstractUser', recipe: Recipe
     ) -> ShoppingCart:
         """
-        Add recipe to user's shopping cart.
+        Добавить рецепт в список покупок пользователя.
 
-        Args:
-            user: User who wants to add the recipe.
-            recipe: Recipe to add to shopping cart.
+        Аргументы:
+            user: Пользователь, который хочет добавить рецепт.
+            recipe: Рецепт для добавления в список покупок.
 
-        Returns:
-            ShoppingCart: Created shopping cart instance.
+        Возвращает:
+            ShoppingCart: Созданный экземпляр элемента списка покупок.
 
-        Raises:
-            ValidationError: If recipe is already in shopping cart.
+        Вызывает:
+            ValidationError: Если рецепт уже в списке покупок.
         """
         cart_item, created = ShoppingCart.objects.get_or_create(
             user=user, recipe=recipe
@@ -157,14 +163,14 @@ class RecipeInteractionService:
         user: 'AbstractUser', recipe: Recipe
     ) -> None:
         """
-        Remove recipe from user's shopping cart.
+        Удалить рецепт из списка покупок пользователя.
 
-        Args:
-            user: User who wants to remove the recipe.
-            recipe: Recipe to remove from shopping cart.
+        Аргументы:
+            user: Пользователь, который хочет удалить рецепт.
+            recipe: Рецепт для удаления из списка покупок.
 
-        Raises:
-            Http404: If shopping cart item does not exist.
+        Вызывает:
+            Http404: Если элемент списка покупок не существует.
         """
         from django.shortcuts import get_object_or_404
         get_object_or_404(

@@ -1,8 +1,8 @@
 """
-API filters for foodgram application.
+Фильтры для API приложения Foodgram.
 
-This module contains filter classes for filtering querysets
-based on query parameters.
+Модуль содержит классы фильтров для фильтрации querysets
+на основе параметров запроса.
 """
 from django.db.models import QuerySet
 from django_filters.rest_framework import FilterSet
@@ -17,32 +17,33 @@ from recipes.models import Recipe, Tag
 
 class IngredientFilter(SearchFilter):
     """
-    Filter for ingredient search by name.
+    Фильтр для поиска ингредиентов по названию.
 
-    Uses case-insensitive search with prefix matching.
+    Использует поиск без учёта регистра с совпадением префикса.
     """
     search_param = 'name'
 
 
 class RecipeFilterSet(FilterSet):
     """
-    FilterSet for recipe filtering.
+    Набор фильтров для фильтрации блюд.
 
-    Supports filtering by tags, author, favorites, and shopping cart.
+    Поддерживает фильтрацию по категориям, автору, избранному и
+    списку покупок.
     """
     tags = ModelMultipleChoiceFilter(
         field_name='tags__slug',
         to_field_name='slug',
         queryset=Tag.objects.all(),
-        label='Tags (filter by slug)',
+        label='Категории (фильтр по slug)',
     )
     is_favorited = BooleanFilter(
         method='filter_favorited',
-        label='Show only favorited recipes',
+        label='Показать только избранные блюда',
     )
     is_in_shopping_cart = BooleanFilter(
         method='filter_shopping_cart',
-        label='Show only recipes in shopping cart',
+        label='Показать только блюда в списке покупок',
     )
 
     class Meta:
@@ -53,15 +54,16 @@ class RecipeFilterSet(FilterSet):
         self, queryset: QuerySet, name: str, value: bool
     ) -> QuerySet:
         """
-        Filter recipes by favorite status for current user.
+        Фильтровать блюда по статусу избранного текущего пользователя.
 
-        Args:
-            queryset: Base recipe queryset.
-            name: Filter field name (unused).
-            value: Boolean value indicating if favorites should be shown.
+        Аргументы:
+            queryset: Базовый queryset блюд.
+            name: Имя поля фильтра (не используется).
+            value: Логическое значение, указывающее, должны ли быть
+                   показаны избранные.
 
-        Returns:
-            Filtered queryset.
+        Возвращает:
+            Отфильтрованный queryset.
         """
         if not value:
             return queryset
@@ -76,15 +78,17 @@ class RecipeFilterSet(FilterSet):
         self, queryset: QuerySet, name: str, value: bool
     ) -> QuerySet:
         """
-        Filter recipes by shopping cart status for current user.
+        Фильтровать блюда по статусу в списке покупок текущего
+        пользователя.
 
-        Args:
-            queryset: Base recipe queryset.
-            name: Filter field name (unused).
-            value: Boolean indicating if shopping cart items should be shown.
+        Аргументы:
+            queryset: Базовый queryset блюд.
+            name: Имя поля фильтра (не используется).
+            value: Логическое значение, указывающее, должны ли быть
+                   показаны в корзине.
 
-        Returns:
-            Filtered queryset.
+        Возвращает:
+            Отфильтрованный queryset.
         """
         if not value:
             return queryset

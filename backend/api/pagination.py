@@ -1,18 +1,19 @@
 """
-API pagination for foodgram application.
+Пагинация для API приложения Foodgram.
 
-This module contains pagination classes for controlling
-how API responses are paginated.
+Модуль содержит классы пагинации для контроля
+постраничной выдачи ответов API.
 """
 from rest_framework.pagination import PageNumberPagination
 
 
 class LimitPageNumberPagination(PageNumberPagination):
     """
-    Custom pagination class with limit parameter.
+    Пользовательский класс пагинации с параметром лимита.
 
-    Allows clients to specify page size via 'limit' query parameter.
-    Maximum page size is limited to 6 items per page.
+    Позволяет клиентам указывать размер страницы через параметр
+    запроса 'limit'. Максимальный размер страницы ограничен
+    6 элементами на страницу.
     """
     page_size_query_param = 'limit'
     max_page_size = 6
