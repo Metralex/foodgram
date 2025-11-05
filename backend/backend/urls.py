@@ -3,12 +3,12 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from recipes.views import recipe_shared_link
+from cookbook.views import short_link_redirect
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('api.urls')),
-    path('s/<slug>/', recipe_shared_link, name='short_url'),
+    path('api/', include('gateway.urls')),
+    path('s/<slug>/', short_link_redirect, name='short_url'),
 ]
 
 if settings.DEBUG:

@@ -43,8 +43,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'djoser',
-    'recipes',
-    'api',
+    'accounts',
+    'cookbook',
+    'gateway',
 ]
 
 MIDDLEWARE = [
@@ -154,15 +155,15 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'api.pagination.LimitPageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'gateway.pagination.ConfigurablePagePagination',
     'PAGE_SIZE': 6,
 }
 
 DJOSER = {
     'HIDE_USERS': False,
     'SERIALIZERS': {
-        'user': 'api.serializers.UserSerializer',
-        'current_user': 'api.serializers.UserSerializer',
+        'user': 'gateway.serializers.AccountSerializer',
+        'current_user': 'gateway.serializers.AccountSerializer',
     },
     'PERMISSIONS': {
         'user': ('djoser.permissions.CurrentUserOrAdminOrReadOnly',),
@@ -170,7 +171,7 @@ DJOSER = {
     },
 }
 
-AUTH_USER_MODEL = 'recipes.User'
+AUTH_USER_MODEL = 'accounts.Account'
 
 CORS_URLS_REGEX = r'^/api/.*$'
 
