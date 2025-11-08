@@ -52,9 +52,7 @@ INSTALLED_APPS = [
     'django_filters',
     'djoser',
     # Локальные приложения
-    'accounts',      # Управление пользователями и социальными связями
-    'cookbook',      # Кулинарный контент (рецепты, ингредиенты, категории)
-    'gateway',       # API слой (эндпоинты, сериализаторы, фильтры)
+    'api',  # API приложение с моделями и эндпоинтами
 ]
 
 # ============================================================================
@@ -165,7 +163,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # ПОЛЬЗОВАТЕЛЬСКАЯ МОДЕЛЬ
 # ============================================================================
 
-AUTH_USER_MODEL = 'accounts.Account'
+AUTH_USER_MODEL = 'api.User'
 
 # ============================================================================
 # REST FRAMEWORK
@@ -181,7 +179,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
     # Класс пагинации по умолчанию
-    'DEFAULT_PAGINATION_CLASS': 'gateway.pagination.ConfigurablePagePagination',
+    'DEFAULT_PAGINATION_CLASS': 'api.pagination.LimitPageNumberPagination',
     'PAGE_SIZE': 6,
 }
 
@@ -192,8 +190,8 @@ REST_FRAMEWORK = {
 DJOSER = {
     'HIDE_USERS': False,
     'SERIALIZERS': {
-        'user': 'gateway.serializers.AccountSerializer',
-        'current_user': 'gateway.serializers.AccountSerializer',
+        'user': 'api.serializers.UserSerializer',
+        'current_user': 'api.serializers.UserSerializer',
     },
     'PERMISSIONS': {
         'user': ('djoser.permissions.CurrentUserOrAdminOrReadOnly',),
