@@ -6,6 +6,8 @@ from api.models import Ingredient
 
 
 class Command(BaseCommand):
+    """Команда для импорта ингредиентов из CSV файла."""
+
     help = 'Import ingredients from CSV file'
 
     def handle(self, *args, **options):

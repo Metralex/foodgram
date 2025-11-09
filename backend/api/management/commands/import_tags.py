@@ -7,6 +7,8 @@ from api.models import Tag
 
 
 class Command(BaseCommand):
+    """Команда для импорта тегов из CSV файла."""
+
     help = 'Import tags from CSV file'
 
     def handle(self, *args, **options):
