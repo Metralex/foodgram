@@ -1,16 +1,15 @@
-"""
-Конфигурация WSGI для проекта backend.
-
-Предоставляет WSGI callable как переменную уровня модуля ``application``.
-
-Дополнительная информация:
-https://docs.djangoproject.com/en/3.2/howto/deployment/wsgi/
-"""
-
 import os
+from functools import lru_cache
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+DJANGO_SETTINGS_MODULE = "backend.settings"
 
-application = get_wsgi_application()
+
+@lru_cache
+def create_wsgi_app():
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", DJANGO_SETTINGS_MODULE)
+    return get_wsgi_application()
+
+
+application = create_wsgi_app()
