@@ -1,21 +1,23 @@
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
-from . import views as api_views
+from . import views
 
 app_name = "api"
 
-router = SimpleRouter()
+api_router = SimpleRouter()
 
-for prefix, viewset in (
-    ("users", api_views.UserViewSet),
-    ("tags", api_views.TagViewSet),
-    ("ingredients", api_views.IngredientViewSet),
-    ("recipes", api_views.RecipeViewSet),
-):
-    router.register(prefix, viewset, basename=prefix)
+VIEWSET_REGISTRATIONS = [
+    ('recipes', views.RecipeViewSet),
+    ('ingredients', views.IngredientViewSet),
+    ('tags', views.TagViewSet),
+    ('users', views.UserViewSet),
+]
+
+for endpoint_prefix, viewset_class in VIEWSET_REGISTRATIONS:
+    api_router.register(endpoint_prefix, viewset_class, basename=endpoint_prefix)
 
 urlpatterns = [
-    path("", include(router.urls)),
+    path("", include(api_router.urls)),
     path("auth/", include("djoser.urls.authtoken")),
 ]

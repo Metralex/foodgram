@@ -2,7 +2,7 @@ from django.apps import AppConfig
 
 
 class ApiConfig(AppConfig):
-    """Конфигурация приложения API."""
+    """Настройка приложения API для работы с рецептами."""
 
-    default_auto_field = 'django.db.models.BigAutoField'
     name = 'api'
+    default_auto_field = 'django.db.models.BigAutoField'

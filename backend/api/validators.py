@@ -1,17 +1,22 @@
 import re
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
 
-def validate_username(username):
-    """Валидация имени пользователя."""
-    pattern = settings.USERNAME_PATTERN
-    forbidden_symbols = re.sub(pattern=pattern, repl='', string=username)
-    if forbidden_symbols:
-        forbidden_symbols = ''.join(set(forbidden_symbols))
+def validate_username(value):
+    """Проверяет корректность имени пользователя согласно правилам системы."""
+    allowed_pattern = settings.USERNAME_PATTERN
+    
+    invalid_chars = re.sub(pattern=allowed_pattern, repl='', string=value)
+    if invalid_chars:
+        unique_invalid = ''.join(sorted(set(invalid_chars)))
         raise ValidationError(
-            f'Обнаружены недопустимые символы: {forbidden_symbols}'
+            f'Обнаружены недопустимые символы: {unique_invalid}'
         )
-    if username in settings.FORBIDDEN_USERNAMES:
-        raise ValidationError(f'Имя пользователя "{username}" недопустимо!')
-    return username
+    
+    forbidden_names = settings.FORBIDDEN_USERNAMES
+    if value in forbidden_names:
+        raise ValidationError(f'Имя пользователя "{value}" недопустимо!')
+    
+    return value

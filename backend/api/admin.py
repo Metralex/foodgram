@@ -1,74 +1,81 @@
 from django.contrib import admin
+
 from .models import (
-    User, Tag, Ingredient, Recipe, RecipeIngredient,
-    Favorite, ShoppingCart, Subscription
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    ShoppingCart,
+    Subscription,
+    Tag,
+    User,
 )
-
-
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    """Административная панель для управления пользователями."""
-
-    list_display = ('username', 'email', 'first_name', 'last_name')
-    search_fields = ('username', 'email')
-    list_filter = ('username', 'email')
 
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    """Административная панель для управления тегами."""
+    """Админка для управления тегами рецептов."""
 
-    list_display = ('name', 'slug')
-    search_fields = ('name',)
     prepopulated_fields = {'slug': ('name',)}
+    search_fields = ('name',)
+    list_display = ('slug', 'name')
 
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    """Административная панель для управления ингредиентами."""
+    """Админка для управления ингредиентами."""
 
-    list_display = ('name', 'measurement_unit')
+    list_filter = ('measurement_unit',)
     search_fields = ('name',)
-    list_filter = ('name',)
+    list_display = ('name', 'measurement_unit')
+
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    """Админка для управления пользователями системы."""
+
+    list_filter = ('email', 'username')
+    search_fields = ('email', 'username')
+    list_display = ('email', 'username', 'first_name', 'last_name')
 
 
 class RecipeIngredientInline(admin.TabularInline):
-    """Встроенная панель для ингредиентов рецепта."""
+    """Inline редактор для ингредиентов в рецепте."""
 
-    model = RecipeIngredient
     extra = 1
+    model = RecipeIngredient
 
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    """Административная панель для управления рецептами."""
+    """Админка для управления рецептами."""
 
-    list_display = ('name', 'author', 'cooking_time', 'pub_date')
-    search_fields = ('name', 'author__username')
-    list_filter = ('tags', 'pub_date')
-    inlines = [RecipeIngredientInline]
     filter_horizontal = ('tags',)
-
-
-@admin.register(Favorite)
-class FavoriteAdmin(admin.ModelAdmin):
-    """Административная панель для управления избранным."""
-
-    list_display = ('user', 'recipe')
-    search_fields = ('user__username', 'recipe__name')
-
-
-@admin.register(ShoppingCart)
-class ShoppingCartAdmin(admin.ModelAdmin):
-    """Административная панель для управления корзиной покупок."""
-
-    list_display = ('user', 'recipe')
-    search_fields = ('user__username', 'recipe__name')
+    inlines = [RecipeIngredientInline]
+    list_filter = ('pub_date', 'tags')
+    search_fields = ('author__username', 'name')
+    list_display = ('name', 'author', 'pub_date', 'cooking_time')
 
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
-    """Административная панель для управления подписками."""
+    """Админка для управления подписками пользователей."""
 
+    search_fields = ('author__username', 'subscriber__username')
     list_display = ('subscriber', 'author')
-    search_fields = ('subscriber__username', 'author__username')
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    """Админка для управления избранными рецептами."""
+
+    search_fields = ('recipe__name', 'user__username')
+    list_display = ('user', 'recipe')
+
+
+@admin.register(ShoppingCart)
+class ShoppingCartAdmin(admin.ModelAdmin):
+    """Админка для управления списками покупок."""
+
+    search_fields = ('recipe__name', 'user__username')
+    list_display = ('user', 'recipe')
