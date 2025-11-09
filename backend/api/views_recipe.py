@@ -8,4 +8,3 @@ def short_link_redirect(request, slug):
     recipe = get_object_or_404(Recipe, short_url_code=slug)
     redirect_url = request.build_absolute_uri(f'/recipes/{recipe.id}/')
     return HttpResponsePermanentRedirect(redirect_url)
-

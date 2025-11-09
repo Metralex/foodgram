@@ -150,7 +150,9 @@ class Recipe(models.Model):
             chars = string.ascii_letters + string.digits
             for _ in range(30):
                 code = ''.join(random.choices(chars, k=6))
-                if not Recipe.objects.filter(short_url_code=code).exclude(pk=self.pk).exists():
+                if not Recipe.objects.filter(
+                    short_url_code=code
+                ).exclude(pk=self.pk).exists():
                     self.short_url_code = code
                     break
         try:
@@ -160,7 +162,9 @@ class Recipe(models.Model):
             chars = string.ascii_letters + string.digits
             for _ in range(30):
                 code = ''.join(random.choices(chars, k=6))
-                if not Recipe.objects.filter(short_url_code=code).exclude(pk=self.pk).exists():
+                if not Recipe.objects.filter(
+                    short_url_code=code
+                ).exclude(pk=self.pk).exists():
                     self.short_url_code = code
                     try:
                         super().save(*args, **kwargs)
@@ -258,4 +262,3 @@ class ShoppingCart(models.Model):
 
     def __str__(self):
         return f'{self.user} - {self.recipe}'
-

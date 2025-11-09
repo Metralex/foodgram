@@ -15,4 +15,3 @@ def validate_username(username):
     if username in settings.FORBIDDEN_USERNAMES:
         raise ValidationError(f'Имя пользователя "{username}" недопустимо!')
     return username
-

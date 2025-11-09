@@ -14,7 +14,7 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'color')
+    list_display = ('name', 'slug')
     search_fields = ('name',)
     prepopulated_fields = {'slug': ('name',)}
 
@@ -56,4 +56,3 @@ class ShoppingCartAdmin(admin.ModelAdmin):
 class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ('subscriber', 'author')
     search_fields = ('subscriber__username', 'author__username')
-

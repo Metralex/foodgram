@@ -83,7 +83,9 @@ class UserViewSet(DjoserUserViewSet):
             author=author, subscriber=subscriber
         )
         if not created:
-            raise ValidationError(dict(error='Вы уже подписаны на этого автора'))
+            raise ValidationError(
+                dict(error='Вы уже подписаны на этого автора')
+            )
         return Response(
             serializers.ReadSubscriptionSerializer(
                 author, context={'request': request}
@@ -193,4 +195,3 @@ class RecipeViewSet(viewsets.ModelViewSet):
             pk=pk,
             model=ShoppingCart,
         )
-

@@ -29,4 +29,3 @@ def make_shopping_cart_file(ingredients, recipes):
         ]
     )
     return BytesIO(content.encode('utf-8'))
-

@@ -156,7 +156,9 @@ class WriteRecipeSerializer(serializers.ModelSerializer):
 
     def validate_image(self, image):
         if not image:
-            raise serializers.ValidationError('Поле "image" не может быть пустым')
+            raise serializers.ValidationError(
+                'Поле "image" не может быть пустым'
+            )
         return image
 
     @staticmethod
@@ -221,4 +223,3 @@ class ReadSubscriptionSerializer(UserSerializer):
             context=self.context,
             many=True,
         ).data
-

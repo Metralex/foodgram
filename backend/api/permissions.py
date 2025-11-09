@@ -7,4 +7,3 @@ class IsAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
             request.method in SAFE_METHODS
             or obj.author == request.user
         )
-

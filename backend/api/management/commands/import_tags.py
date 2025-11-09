@@ -25,4 +25,3 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS('Теги успешно импортированы')
         )
-
