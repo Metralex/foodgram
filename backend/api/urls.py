@@ -15,7 +15,9 @@ VIEWSET_REGISTRATIONS = [
 ]
 
 for endpoint_prefix, viewset_class in VIEWSET_REGISTRATIONS:
-    api_router.register(endpoint_prefix, viewset_class, basename=endpoint_prefix)
+    api_router.register(
+        endpoint_prefix, viewset_class, basename=endpoint_prefix
+    )
 
 urlpatterns = [
     path("", include(api_router.urls)),
