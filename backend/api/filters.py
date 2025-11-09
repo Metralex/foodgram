@@ -1,35 +1,51 @@
-from django_filters.rest_framework import FilterSet
-from django_filters.rest_framework.filters import (
-    BooleanFilter,
-    ModelMultipleChoiceFilter,
-)
-from rest_framework.filters import SearchFilter
+from django.db.models import QuerySet
+from django_filters import rest_framework as df_filters
+from rest_framework import filters as drf_filters
+
 from .models import Recipe, Tag
 
 
-class IngredientFilter(SearchFilter):
-    search_param = 'name'
+class IngredientFilter(drf_filters.SearchFilter):
+    """Provide prefix search queries for ingredient names."""
+
+    search_param = "name"
+
+    def get_search_terms(self, request):
+        terms = super().get_search_terms(request)
+        return [term.strip() for term in terms if term.strip()]
 
 
-class RecipeFilterSet(FilterSet):
-    tags = ModelMultipleChoiceFilter(
-        field_name='tags__slug',
-        to_field_name='slug',
+class RecipeFilterSet(df_filters.FilterSet):
+    """Filter recipes by tags, author and user-specific flags."""
+
+    tags = df_filters.ModelMultipleChoiceFilter(
+        field_name="tags__slug",
+        to_field_name="slug",
         queryset=Tag.objects.all(),
     )
-    is_favorited = BooleanFilter(method='get_is_favorited')
-    is_in_shopping_cart = BooleanFilter(method='get_is_in_shopping_cart')
+    is_favorited = df_filters.BooleanFilter(method="filter_by_favorites")
+    is_in_shopping_cart = df_filters.BooleanFilter(
+        method="filter_by_shopping_cart"
+    )
 
     class Meta:
         model = Recipe
-        fields = ('tags', 'author', 'is_favorited', 'is_in_shopping_cart')
+        fields = ("tags", "author", "is_favorited", "is_in_shopping_cart")
 
-    def get_is_favorited(self, recipes, name, value):
-        if self.request.user.is_authenticated and value:
-            return recipes.filter(favorites__user=self.request.user)
-        return recipes
+    def _filter_by_relation(
+        self, queryset: QuerySet, value: bool, relation: str
+    ) -> QuerySet:
+        if not value or not self.request.user.is_authenticated:
+            return queryset
+        lookup = f"{relation}__user"
+        return queryset.filter(**{lookup: self.request.user})
 
-    def get_is_in_shopping_cart(self, recipes, name, value):
-        if self.request.user.is_authenticated and value:
-            return recipes.filter(shoppingcarts__user=self.request.user)
-        return recipes
+    def filter_by_favorites(
+        self, queryset: QuerySet, _name: str, value: bool
+    ) -> QuerySet:
+        return self._filter_by_relation(queryset, value, "favorites")
+
+    def filter_by_shopping_cart(
+        self, queryset: QuerySet, _name: str, value: bool
+    ) -> QuerySet:
+        return self._filter_by_relation(queryset, value, "shoppingcarts")

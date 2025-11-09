@@ -5,16 +5,21 @@ from django.urls import include, path
 
 from api.views_recipe import short_link_redirect
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('api.urls')),
-    path('s/<slug>/', short_link_redirect, name='short_url'),
-]
 
-if settings.DEBUG:
-    urlpatterns += static(
-        settings.STATIC_URL, document_root=settings.STATIC_ROOT
-    )
-    urlpatterns += static(
-        settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
-    )
+def build_urlpatterns():
+    core_patterns = [
+        path("admin/", admin.site.urls),
+        path("api/", include("api.urls")),
+        path("s/<slug>/", short_link_redirect, name="short_url"),
+    ]
+    if settings.DEBUG:
+        core_patterns += static(
+            settings.STATIC_URL, document_root=settings.STATIC_ROOT
+        )
+        core_patterns += static(
+            settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
+        )
+    return core_patterns
+
+
+urlpatterns = build_urlpatterns()

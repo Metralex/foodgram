@@ -1,16 +1,19 @@
-"""
-WSGI config for backend project.
+"""WSGI entrypoint used by the Foodgram project."""
 
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/3.2/howto/deployment/wsgi/
-"""
+from __future__ import annotations
 
 import os
+from functools import lru_cache
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+DJANGO_SETTINGS_MODULE = "backend.settings"
 
-application = get_wsgi_application()
+
+@lru_cache
+def create_wsgi_app():
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", DJANGO_SETTINGS_MODULE)
+    return get_wsgi_application()
+
+
+application = create_wsgi_app()

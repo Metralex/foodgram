@@ -1,16 +1,19 @@
-"""
-ASGI config for backend project.
+"""ASGI entrypoint for the Foodgram backend."""
 
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/3.2/howto/deployment/asgi/
-"""
+from __future__ import annotations
 
 import os
+from functools import lru_cache
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+DJANGO_SETTINGS_MODULE = "backend.settings"
 
-application = get_asgi_application()
+
+@lru_cache
+def create_asgi_app():
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", DJANGO_SETTINGS_MODULE)
+    return get_asgi_application()
+
+
+application = create_asgi_app()

@@ -1,13 +1,17 @@
 FROM python:3.9-slim
 
-WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-COPY requirements.txt .
+WORKDIR /srv/app
 
-RUN python -m pip install --upgrade pip
+COPY requirements.txt /tmp/requirements.txt
 
-RUN pip install -r /app/requirements.txt --no-cache-dir
+RUN python -m pip install --upgrade pip && \
+    pip install --no-cache-dir -r /tmp/requirements.txt
 
-COPY . .
+COPY . /srv/app
 
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "backend.wsgi"]
+EXPOSE 10000
+
+CMD ["gunicorn", "backend.wsgi", "--bind=0.0.0.0:10000"]
