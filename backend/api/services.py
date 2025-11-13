@@ -1,7 +1,4 @@
-from typing import Any, Dict, List, Tuple, Type
-
 from django.db import transaction
-from django.db.models import Model, Sum
 from django.http import FileResponse
 
 from . import utils
@@ -57,13 +54,17 @@ class RecipeService:
     @staticmethod
     def manage_recipe_relation(user, recipe, relation_model):
         """Добавляет рецепт в избранное или список покупок."""
-        instance, created = relation_model.objects.get_or_create(user=user, recipe=recipe)
+        instance, created = relation_model.objects.get_or_create(
+            user=user, recipe=recipe
+        )
         return (None, False) if not created else (instance, True)
 
     @staticmethod
     def remove_recipe_relation(user, recipe, relation_model):
         """Удаляет рецепт из избранного или списка покупок."""
-        deleted_count, _ = relation_model.objects.filter(user=user, recipe=recipe).delete()
+        deleted_count, _ = relation_model.objects.filter(
+            user=user, recipe=recipe
+        ).delete()
         return deleted_count > 0
 
     @staticmethod
@@ -72,13 +73,17 @@ class RecipeService:
         from django.db.models import Sum
 
         ingredients = (
-            RecipeIngredient.objects.filter(recipe__shoppingcarts__user=user)
+            RecipeIngredient.objects.filter(
+                recipe__shoppingcarts__user=user
+            )
             .select_related('recipe', 'ingredient')
             .values('ingredient__name', 'ingredient__measurement_unit')
             .annotate(amount=Sum('amount'))
             .order_by('ingredient__name')
         )
-        recipes = Recipe.objects.filter(shoppingcarts__user=user).distinct()
+        recipes = Recipe.objects.filter(
+            shoppingcarts__user=user
+        ).distinct()
 
         file_content = utils.make_shopping_cart_file(ingredients, recipes)
         return FileResponse(

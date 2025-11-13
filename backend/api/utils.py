@@ -10,16 +10,10 @@ from django.utils import timezone
 
 from .models import Recipe
 
-# --------------------------------------------------------------------------- #
-# Constants
-# --------------------------------------------------------------------------- #
 DATETIME_FORMAT = "%d-%m-%Y %H:%M"
 ENCODING = "utf-8"
 
 
-# --------------------------------------------------------------------------- #
-# Shopping cart utilities
-# --------------------------------------------------------------------------- #
 def _format_ingredient_line(
     position: int, ingredient_data: Dict[str, Any]
 ) -> str:

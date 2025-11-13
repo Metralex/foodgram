@@ -35,20 +35,17 @@ ALLOWED_HOSTS = _env_list("ALLOWED_HOSTS", default=("127.0.0.1",))
 
 
 INSTALLED_APPS = [
-    # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Third-party apps
     "django_extensions",
     "rest_framework.authtoken",
     "rest_framework",
     "django_filters",
     "djoser",
-    # Local apps
     "api",
 ]
 

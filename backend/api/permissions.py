@@ -21,13 +21,13 @@ class IsAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
         self, request: HttpRequest, view: APIView, obj: Any
     ) -> bool:
         """Проверяет права доступа пользователя к объекту."""
-        # Allow read-only requests for everyone
+        # Разрешаем запросы только для чтения всем
         if request.method in SAFE_METHODS:
             return True
 
-        # Ensure the object has an author attribute
+        # Убеждаемся, что объект имеет атрибут автора
         if not hasattr(obj, "author"):
             return False
 
-        # Only the author can modify the object
+        # Только автор может изменять объект
         return obj.author == request.user

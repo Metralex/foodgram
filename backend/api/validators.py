@@ -12,16 +12,17 @@ def validate_username(value: str) -> str:
     """Проверяет корректность имени пользователя."""
     allowed_pattern = settings.USERNAME_PATTERN
 
-    # Extract any characters that don't match the allowed pattern
+    # Извлекаем символы, не совпадающие с допустимым паттерном
     invalid_chars = re.sub(pattern=allowed_pattern, repl="", string=value)
     if invalid_chars:
-        # Get unique invalid characters for a clearer error message
+        # Получаем уникальные недопустимые символы
+        # для понятного сообщения об ошибке
         unique_invalid = "".join(sorted(set(invalid_chars)))
         raise ValidationError(
             f"Обнаружены недопустимые символы: {unique_invalid}"
         )
 
-    # Check against forbidden usernames
+    # Проверяем против запрещенных имен пользователей
     forbidden_names = settings.FORBIDDEN_USERNAMES
     if value in forbidden_names:
         raise ValidationError(f'Имя пользователя "{value}" недопустимо!')

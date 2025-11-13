@@ -17,7 +17,7 @@ from .models import (
 
 
 # --------------------------------------------------------------------------- #
-# Basic resource admins
+# Базовые админ-панели
 # --------------------------------------------------------------------------- #
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
@@ -40,7 +40,7 @@ class IngredientAdmin(admin.ModelAdmin):
 
 
 # --------------------------------------------------------------------------- #
-# User management
+# Управление пользователями
 # --------------------------------------------------------------------------- #
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -54,7 +54,7 @@ class UserAdmin(admin.ModelAdmin):
 
 
 # --------------------------------------------------------------------------- #
-# Recipe management
+# Управление рецептами
 # --------------------------------------------------------------------------- #
 class RecipeIngredientInline(admin.TabularInline):
     """Inline редактор для ингредиентов рецепта."""
@@ -91,7 +91,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 # --------------------------------------------------------------------------- #
-# User interactions
+# Взаимодействия пользователей
 # --------------------------------------------------------------------------- #
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
