@@ -1,4 +1,4 @@
-"""Root URL declarations for the Foodgram backend."""
+"""Корневые объявления URL для бэкенда Foodgram."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from api.views_recipe import short_link_redirect
 
 
 def _static_patterns() -> list[URLPattern]:
-    """Compose static and media serving rules used during development."""
+    """Составить правила обслуживания статических файлов и медиа, используемые во время разработки."""
     if not settings.DEBUG:
         return []
     return [

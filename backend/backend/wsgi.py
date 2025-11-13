@@ -1,4 +1,4 @@
-"""WSGI entrypoint for the Foodgram backend."""
+"""WSGI точка входа для бэкенда Foodgram."""
 
 from __future__ import annotations
 
@@ -12,13 +12,13 @@ SETTINGS_MODULE = "backend.settings"
 
 
 def _configure_environment() -> None:
-    """Configure Django to use the correct settings module."""
+    """Настроить Django для использования правильного модуля настроек."""
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", SETTINGS_MODULE)
 
 
 @lru_cache(maxsize=1)
 def _build_application() -> WSGIHandler:
-    """Return a cached WSGI handler instance."""
+    """Возвращает кэшированный экземпляр WSGI обработчика."""
     _configure_environment()
     return get_wsgi_application()
 

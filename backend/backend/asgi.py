@@ -1,4 +1,4 @@
-"""ASGI entrypoint for the Foodgram backend."""
+"""ASGI точка входа для бэкенда Foodgram."""
 
 from __future__ import annotations
 
@@ -12,13 +12,13 @@ SETTINGS_MODULE = "backend.settings"
 
 
 def _configure_environment() -> None:
-    """Ensure Django knows which settings module to use."""
+    """Убедиться, что Django использует правильный модуль настроек."""
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", SETTINGS_MODULE)
 
 
 @lru_cache(maxsize=1)
 def _build_application() -> ASGIHandler:
-    """Return a cached ASGI application instance."""
+    """Возвращает кэшированный экземпляр ASGI приложения."""
     _configure_environment()
     return get_asgi_application()
 
