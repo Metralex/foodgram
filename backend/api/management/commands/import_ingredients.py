@@ -1,28 +1,57 @@
+"""Команда управления для импорта ингредиентов из CSV файла."""
+
+from __future__ import annotations
+
 import csv
-import os
-from django.core.management.base import BaseCommand
+from pathlib import Path
+from typing import Any
+
 from django.conf import settings
+from django.core.management.base import BaseCommand, CommandParser
+
 from api.models import Ingredient
 
 
 class Command(BaseCommand):
-    """Команда для импорта ингредиентов из CSV файла."""
+    """Импорт ингредиентов из CSV файла в базу данных."""
 
-    help = 'Import ingredients from CSV file'
+    help = "Import ingredients from CSV file located in data/ingredients.csv"
 
-    def handle(self, *args, **options):
-        csv_path = os.path.join(settings.BASE_DIR, 'data', 'ingredients.csv')
-        with open(csv_path, 'r', encoding='utf-8') as file:
+    def add_arguments(self, parser: CommandParser) -> None:
+        """Добавляет аргументы командной строки."""
+        parser.add_argument(
+            "--file",
+            type=str,
+            default="data/ingredients.csv",
+            help="Path to the CSV file (relative to BASE_DIR)",
+        )
+
+    def handle(self, *args: Any, **options: Any) -> None:
+        """Выполняет логику команды."""
+        csv_path = Path(settings.BASE_DIR) / options["file"]
+
+        if not csv_path.exists():
+            self.stdout.write(self.style.ERROR(f"Файл не найден: {csv_path}"))
+            return
+
+        self.stdout.write(f"Импорт ингредиентов из {csv_path}...")
+
+        ingredients = []
+        with open(csv_path, "r", encoding="utf-8") as file:
             reader = csv.DictReader(file)
-            ingredients = []
             for row in reader:
                 ingredients.append(
                     Ingredient(
-                        name=row['name'],
-                        measurement_unit=row['measurement_unit']
+                        name=row["name"],
+                        measurement_unit=row["measurement_unit"],
                     )
                 )
-            Ingredient.objects.bulk_create(ingredients, ignore_conflicts=True)
+
+        created_count = len(ingredients)
+        Ingredient.objects.bulk_create(ingredients, ignore_conflicts=True)
+
         self.stdout.write(
-            self.style.SUCCESS('Ингредиенты успешно импортированы')
+            self.style.SUCCESS(
+                f"Успешно импортировано {created_count} ингредиентов"
+            )
         )

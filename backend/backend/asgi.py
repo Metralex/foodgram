@@ -1,15 +1,26 @@
+"""ASGI entrypoint for the Foodgram backend."""
+
+from __future__ import annotations
+
 import os
 from functools import lru_cache
 
 from django.core.asgi import get_asgi_application
+from django.core.handlers.asgi import ASGIHandler
 
-DJANGO_SETTINGS_MODULE = "backend.settings"
+SETTINGS_MODULE = "backend.settings"
 
 
-@lru_cache
-def create_asgi_app():
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", DJANGO_SETTINGS_MODULE)
+def _configure_environment() -> None:
+    """Ensure Django knows which settings module to use."""
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", SETTINGS_MODULE)
+
+
+@lru_cache(maxsize=1)
+def _build_application() -> ASGIHandler:
+    """Return a cached ASGI application instance."""
+    _configure_environment()
     return get_asgi_application()
 
 
-application = create_asgi_app()
+application: ASGIHandler = _build_application()

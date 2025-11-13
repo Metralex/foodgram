@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from secrets import choice as secure_choice
 from string import ascii_letters, digits
 
@@ -5,18 +7,47 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import IntegrityError, models
-from django.db.models import Q
+from django.db.models import F, Q
 
 from .validators import validate_username
 
+__all__ = (
+    'Tag',
+    'Ingredient',
+    'User',
+    'Recipe',
+    'RecipeIngredient',
+    'Subscription',
+    'Favorite',
+    'ShoppingCart',
+)
 
-CODE_LENGTH = 6
-MAX_GENERATION_ATTEMPTS = 30
-ALLOWED_CHARS = ascii_letters + digits
+
+# --------------------------------------------------------------------------- #
+# Configuration constants
+# --------------------------------------------------------------------------- #
+SHORT_CODE_LENGTH = 6
+SHORT_CODE_ALPHABET = ascii_letters + digits
+RECIPE_COOKING_MINIMUM = 1
+RECIPE_COOKING_ERROR = 'Минимум 1 минута'
+INGREDIENT_AMOUNT_MINIMUM = 1
+INGREDIENT_AMOUNT_ERROR = 'Минимум 1'
+
+# --------------------------------------------------------------------------- #
+# Helper functions
+# --------------------------------------------------------------------------- #
 
 
+def generate_short_code(length: int = SHORT_CODE_LENGTH) -> str:
+    """Генерирует случайный короткий код."""
+    return "".join(secure_choice(SHORT_CODE_ALPHABET) for _ in range(length))
+
+
+# --------------------------------------------------------------------------- #
+# Domain models
+# --------------------------------------------------------------------------- #
 class Tag(models.Model):
-    """Представляет тематическую категорию для кулинарных рецептов."""
+    """Represents a thematic tag used to group recipes."""
 
     slug = models.SlugField(
         'Уникальный слаг',
@@ -27,31 +58,31 @@ class Tag(models.Model):
     name = models.CharField('Название', max_length=200, unique=True)
 
     class Meta:
+        ordering = ('name',)
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
-        ordering = ('name',)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
 class Ingredient(models.Model):
-    """Представляет продукт для приготовления блюд."""
+    """Stores products used for recipe preparation."""
 
     measurement_unit = models.CharField('Единица измерения', max_length=200)
     name = models.CharField('Название', max_length=200)
 
     class Meta:
+        ordering = ('name',)
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
-        ordering = ('name',)
 
-    def __str__(self):
-        return f'{self.name}, {self.measurement_unit}'
+    def __str__(self) -> str:
+        return f"{self.name}, {self.measurement_unit}"
 
 
 class User(AbstractUser):
-    """Расширенная модель пользователя системы."""
+    """Custom user model supporting email login and profile avatars."""
 
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
     USERNAME_FIELD = 'email'
@@ -78,32 +109,34 @@ class User(AbstractUser):
     )
 
     class Meta:
+        ordering = ('username',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
-        ordering = ('username',)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.username
 
     @property
-    def full_name(self):
-        return f'{self.first_name} {self.last_name}'
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name}".strip()
 
 
 class Recipe(models.Model):
-    """Кулинарный рецепт с описанием, ингредиентами и временем готовки."""
+    """Culinary recipe with tags, ingredients and preparation metadata."""
 
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
     short_url_code = models.SlugField(
         'Короткий код',
-        max_length=CODE_LENGTH,
+        max_length=SHORT_CODE_LENGTH,
         unique=True,
         blank=True,
         db_index=True,
     )
     cooking_time = models.PositiveIntegerField(
         'Время приготовления (в минутах)',
-        validators=[MinValueValidator(1, 'Минимум 1 минута')],
+        validators=[
+            MinValueValidator(RECIPE_COOKING_MINIMUM, RECIPE_COOKING_ERROR)
+        ],
     )
     tags = models.ManyToManyField(
         Tag,
@@ -111,8 +144,8 @@ class Recipe(models.Model):
         verbose_name='Теги',
     )
     ingredients = models.ManyToManyField(
-        Ingredient,
-        through='RecipeIngredient',
+        'Ingredient',
+        through="RecipeIngredient",
         related_name='recipes',
         verbose_name='Ингредиенты',
     )
@@ -130,51 +163,43 @@ class Recipe(models.Model):
     name = models.CharField('Название', max_length=200)
 
     class Meta:
+        ordering = ('-pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        ordering = ('-pub_date',)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    @classmethod
-    def _generate_unique_code(cls, attempts=MAX_GENERATION_ATTEMPTS):
-        """Генерирует уникальный короткий код для рецепта."""
-        for _ in range(attempts):
-            generated_code = ''.join(
-                secure_choice(ALLOWED_CHARS) for _ in range(CODE_LENGTH)
-            )
-            if not cls.objects.filter(short_url_code=generated_code).exists():
-                return generated_code
-        return None
-
-    def _ensure_short_url_code(self):
-        """Обеспечивает наличие короткого кода перед сохранением."""
+    def save(self, *args, **kwargs) -> None:  # type: ignore[override]
+        """При сохранении генерирует уникальный короткий код."""
         if not self.short_url_code:
-            generated_code = self._generate_unique_code()
-            if generated_code:
-                self.short_url_code = generated_code
+            self.short_url_code = generate_short_code()
 
-    def save(self, *args, **kwargs):
-        self._ensure_short_url_code()
-        attempt_count = 0
-        while attempt_count < MAX_GENERATION_ATTEMPTS:
+        # Попытка сохранить с уникальным кодом
+        max_attempts = 30
+        for _ in range(max_attempts):
             try:
                 super().save(*args, **kwargs)
-                break
+                return
             except IntegrityError:
-                attempt_count += 1
-                self.short_url_code = self._generate_unique_code()
-                if not self.short_url_code:
-                    raise
+                self.short_url_code = generate_short_code()
+
+        raise IntegrityError(
+            f"Не удалось сгенерировать уникальный код "
+            f"за {max_attempts} попыток."
+        )
 
 
 class RecipeIngredient(models.Model):
-    """Связывает рецепт с конкретным количеством ингредиента."""
+    """Intermediate model linking recipes with ingredient amounts."""
 
     amount = models.PositiveIntegerField(
         'Количество',
-        validators=[MinValueValidator(1, 'Минимум 1')],
+        validators=[
+            MinValueValidator(
+                INGREDIENT_AMOUNT_MINIMUM, INGREDIENT_AMOUNT_ERROR
+            )
+        ],
     )
     ingredient = models.ForeignKey(
         Ingredient,
@@ -188,23 +213,23 @@ class RecipeIngredient(models.Model):
     )
 
     class Meta:
+        ordering = ('recipe', 'ingredient')
         verbose_name = 'Ингредиент рецепта'
         verbose_name_plural = 'Ингредиенты рецепта'
         default_related_name = '%(class)ss'
-        ordering = ('recipe', 'ingredient')
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
-                name='unique_recipe_ingredient'
+                name='unique_recipe_ingredient',
             )
         ]
 
-    def __str__(self):
-        return f'{self.recipe} - {self.ingredient}'
+    def __str__(self) -> str:
+        return f"{self.recipe} - {self.ingredient}"
 
 
 class Subscription(models.Model):
-    """Хранит информацию о подписке одного пользователя на другого."""
+    """Represents a follower relationship between users."""
 
     author = models.ForeignKey(
         User,
@@ -225,20 +250,20 @@ class Subscription(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['subscriber', 'author'],
-                name='unique_subscription'
+                name='unique_subscription',
             ),
             models.CheckConstraint(
-                check=~Q(subscriber=models.F('author')),
-                name='prevent_self_subscription'
+                check=~Q(subscriber=F('author')),
+                name='prevent_self_subscription',
             ),
         ]
 
-    def __str__(self):
-        return f'{self.subscriber} подписан на {self.author}'
+    def __str__(self) -> str:
+        return f"{self.subscriber} подписан на {self.author}"
 
 
 class Favorite(models.Model):
-    """Отмечает рецепты, добавленные пользователем в избранное."""
+    """Tracks recipes a user has marked as favourites."""
 
     recipe = models.ForeignKey(
         Recipe,
@@ -259,16 +284,16 @@ class Favorite(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
-                name='unique_favorite'
+                name='unique_favorite',
             )
         ]
 
-    def __str__(self):
-        return f'{self.user} - {self.recipe}'
+    def __str__(self) -> str:
+        return f"{self.user} - {self.recipe}"
 
 
 class ShoppingCart(models.Model):
-    """Представляет список покупок пользователя на основе рецептов."""
+    """Stores recipes added to a user's shopping cart."""
 
     recipe = models.ForeignKey(
         Recipe,
@@ -289,9 +314,9 @@ class ShoppingCart(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
-                name='unique_shopping_cart'
+                name='unique_shopping_cart',
             )
         ]
 
-    def __str__(self):
-        return f'{self.user} - {self.recipe}'
+    def __str__(self) -> str:
+        return f"{self.user} - {self.recipe}"
