@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-"""Command-line utility for Django administrative tasks."""
-
 from __future__ import annotations
 
 import os

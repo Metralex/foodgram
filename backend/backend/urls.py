@@ -11,7 +11,8 @@ from api.views_recipe import short_link_redirect
 
 
 def _static_patterns() -> list[URLPattern]:
-    """Составить правила обслуживания статических файлов и медиа, используемые во время разработки."""
+    """Составить правила обслуживания статических файлов и медиа, используемые
+    во время разработки."""
     if not settings.DEBUG:
         return []
     return [
