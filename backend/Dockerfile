@@ -14,4 +14,4 @@ COPY . /srv/app
 
 EXPOSE 10000
 
-CMD ["gunicorn", "backend.wsgi", "--bind=0.0.0.0:10000"]
+CMD ["gunicorn", "backend.wsgi", "--bind=0.0.0.0:8000"]

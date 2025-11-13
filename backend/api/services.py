@@ -1,29 +1,22 @@
-from __future__ import annotations
-
 from typing import Any, Dict, List, Tuple, Type
 
 from django.db import transaction
-from django.db.models import Model
+from django.db.models import Model, Sum
 from django.http import FileResponse
 
 from . import utils
-from .models import (
-    Recipe,
-    RecipeIngredient,
-    Subscription,
-    User,
-)
+from .models import Recipe, RecipeIngredient, Subscription, User
 
 
 class RecipeService:
+    """Сервис для работы с рецептами."""
+
     @staticmethod
-    def _bulk_create_ingredients(
-        recipe_instance: Recipe, ingredients_data: List[Dict[str, Any]]
-    ) -> None:
-        """Массово создает связи ингредиентов с рецептом."""
+    def _bulk_create_ingredients(recipe, ingredients_data):
+        """Создает ингредиенты для рецепта."""
         ingredient_relations = [
             RecipeIngredient(
-                recipe=recipe_instance,
+                recipe=recipe,
                 ingredient=item['ingredient'],
                 amount=item['amount'],
             )
@@ -33,10 +26,8 @@ class RecipeService:
 
     @classmethod
     @transaction.atomic
-    def create_recipe(
-        cls, author: User, validated_data: Dict[str, Any]
-    ) -> Recipe:
-        """Создает новый рецепт с тегами и ингредиентами."""
+    def create_recipe(cls, author, validated_data):
+        """Создает новый рецепт."""
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
 
@@ -47,10 +38,8 @@ class RecipeService:
 
     @classmethod
     @transaction.atomic
-    def update_recipe(
-        cls, recipe: Recipe, validated_data: Dict[str, Any]
-    ) -> Recipe:
-        """Обновляет существующий рецепт, его теги и ингредиенты."""
+    def update_recipe(cls, recipe, validated_data):
+        """Обновляет рецепт."""
         if 'tags' in validated_data:
             recipe.tags.set(validated_data.pop('tags'))
 
@@ -66,42 +55,30 @@ class RecipeService:
         return recipe
 
     @staticmethod
-    def manage_recipe_relation(
-        user: User, recipe: Recipe, relation_model: Type[Model]
-    ) -> Tuple[Model | None, bool]:
-        """Создает или удаляет связь 'user-recipe' (избранное, корзина)."""
-        instance, created = relation_model.objects.get_or_create(
-            user=user, recipe=recipe
-        )
+    def manage_recipe_relation(user, recipe, relation_model):
+        """Добавляет рецепт в избранное или список покупок."""
+        instance, created = relation_model.objects.get_or_create(user=user, recipe=recipe)
         return (None, False) if not created else (instance, True)
 
     @staticmethod
-    def remove_recipe_relation(
-        user: User, recipe: Recipe, relation_model: Type[Model]
-    ) -> bool:
-        """Удаляет связь 'user-recipe'."""
-        deleted_count, _ = relation_model.objects.filter(
-            user=user, recipe=recipe
-        ).delete()
+    def remove_recipe_relation(user, recipe, relation_model):
+        """Удаляет рецепт из избранного или списка покупок."""
+        deleted_count, _ = relation_model.objects.filter(user=user, recipe=recipe).delete()
         return deleted_count > 0
 
     @staticmethod
-    def generate_shopping_cart_file(user: User) -> FileResponse:
-        """Генерирует и возвращает файл со списком покупок."""
+    def generate_shopping_cart_file(user):
+        """Генерирует файл со списком покупок."""
         from django.db.models import Sum
 
         ingredients = (
-            RecipeIngredient.objects.filter(
-                recipe__shoppingcarts__user=user
-            )
+            RecipeIngredient.objects.filter(recipe__shoppingcarts__user=user)
             .select_related('recipe', 'ingredient')
             .values('ingredient__name', 'ingredient__measurement_unit')
             .annotate(amount=Sum('amount'))
             .order_by('ingredient__name')
         )
-        recipes = Recipe.objects.filter(
-            shoppingcarts__user=user
-        ).distinct()
+        recipes = Recipe.objects.filter(shoppingcarts__user=user).distinct()
 
         file_content = utils.make_shopping_cart_file(ingredients, recipes)
         return FileResponse(
@@ -113,10 +90,10 @@ class RecipeService:
 
 
 class UserService:
+    """Сервис для работы с пользователями."""
+
     @staticmethod
-    def subscribe_to_author(
-        subscriber: User, author: User
-    ) -> Tuple[Subscription | None, bool]:
+    def subscribe_to_author(subscriber, author):
         """Подписывает пользователя на автора."""
         if subscriber == author:
             return None, False
@@ -127,7 +104,7 @@ class UserService:
         return (subscription, True) if created else (None, False)
 
     @staticmethod
-    def unsubscribe_from_author(subscriber: User, author: User) -> bool:
+    def unsubscribe_from_author(subscriber, author):
         """Отписывает пользователя от автора."""
         deleted_count, _ = Subscription.objects.filter(
             subscriber=subscriber, author=author
@@ -135,6 +112,6 @@ class UserService:
         return deleted_count > 0
 
     @staticmethod
-    def get_user_subscriptions(user: User):
-        """Возвращает QuerySet авторов, на которых подписан пользователь."""
+    def get_user_subscriptions(user):
+        """Возвращает авторов, на которых подписан пользователь."""
         return User.objects.filter(authors__subscriber=user)
