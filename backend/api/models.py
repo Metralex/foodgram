@@ -18,7 +18,7 @@ INGREDIENT_AMOUNT_MINIMUM = 1
 INGREDIENT_AMOUNT_ERROR = 'Минимум 1'
 
 
-def generate_short_code(length: int = SHORT_CODE_LENGTH) -> str:
+def generate_short_code(length: int = SHORT_CODE_LENGTH):
     """Генерирует случайный короткий код для рецепта."""
     return "".join(secure_choice(SHORT_CODE_ALPHABET) for _ in range(length))
 

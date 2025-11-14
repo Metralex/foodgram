@@ -11,7 +11,7 @@ load_dotenv(BASE_DIR / ".env")
 
 
 def _env_bool(name: str, default: bool = False) -> bool:
-    """Return a boolean interpreted from an environment variable."""
+    """Возвращает булево значение из переменной окружения."""
     truthy = {"1", "true", "t", "yes", "y", "on"}
     value = os.getenv(name)
     if value is None:
@@ -20,7 +20,7 @@ def _env_bool(name: str, default: bool = False) -> bool:
 
 
 def _env_list(name: str, default: Iterable[str] | None = None) -> List[str]:
-    """Parse a comma-separated environment variable into a list."""
+    """Парсит переменную окружения со списком значений через запятую."""
     raw_value = os.getenv(name)
     if raw_value is None:
         if default is None:

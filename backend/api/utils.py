@@ -3,20 +3,14 @@
 from __future__ import annotations
 
 from io import BytesIO
-from typing import Any, Dict, Iterable
 
-from django.db.models import QuerySet
 from django.utils import timezone
-
-from .models import Recipe
 
 DATETIME_FORMAT = "%d-%m-%Y %H:%M"
 ENCODING = "utf-8"
 
 
-def _format_ingredient_line(
-    position: int, ingredient_data: Dict[str, Any]
-) -> str:
+def _format_ingredient_line(position, ingredient_data):
     """Форматирует строку с информацией об ингредиенте."""
     return (
         f'{position}. {ingredient_data["ingredient__name"].capitalize()} '
@@ -25,15 +19,12 @@ def _format_ingredient_line(
     )
 
 
-def _format_recipe_line(position: int, recipe_obj: Recipe) -> str:
+def _format_recipe_line(position, recipe_obj):
     """Форматирует строку с названием рецепта."""
     return f"{position}. {recipe_obj.name}"
 
 
-def make_shopping_cart_file(
-    ingredients_data: Iterable[Dict[str, Any]],
-    recipes_queryset: QuerySet[Recipe],
-) -> BytesIO:
+def make_shopping_cart_file(ingredients_data, recipes_queryset):
     """Генерирует текстовый файл со списком покупок."""
     timestamp = timezone.now().strftime(DATETIME_FORMAT)
 

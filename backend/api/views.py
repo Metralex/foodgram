@@ -9,7 +9,6 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
@@ -36,7 +35,7 @@ class UserViewSet(DjoserUserViewSet):
         return super().get_permissions()
 
     @action(detail=True, methods=('POST', 'DELETE'))
-    def subscribe(self, request: Request, id: int) -> Response:
+    def subscribe(self, request, id):
         """Подписка или отписка от автора."""
         author = get_object_or_404(User, pk=id)
 
@@ -67,7 +66,7 @@ class UserViewSet(DjoserUserViewSet):
         methods=('GET',),
         pagination_class=pagination.LimitPageNumberPagination
     )
-    def subscriptions(self, request: Request) -> Response:
+    def subscriptions(self, request):
         """Список подписок пользователя."""
         authors_queryset = UserService.get_user_subscriptions(
             user=request.user
@@ -84,7 +83,7 @@ class UserViewSet(DjoserUserViewSet):
         permission_classes=(IsAuthenticated,),
         url_path='me/avatar',
     )
-    def avatar(self, request: Request) -> Response:
+    def avatar(self, request):
         """Управление аватаром."""
         current_user = request.user
 
@@ -136,9 +135,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         pass
 
-    def _manage_recipe_relation(
-        self, request: Request, pk: int, relation_model, error_msg: str
-    ) -> Response:
+    def _manage_recipe_relation(self, request, pk, relation_model, error_msg):
         """Добавление/удаление рецепта в избранное или список покупок."""
         recipe = get_object_or_404(Recipe, pk=pk)
 
@@ -160,26 +157,26 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=('POST', 'DELETE'))
-    def shopping_cart(self, request: Request, pk: int) -> Response:
+    def shopping_cart(self, request, pk):
         """Добавление/удаление из списка покупок."""
         return self._manage_recipe_relation(
             request, pk, ShoppingCart, ALREADY_IN_CART_ERROR
         )
 
     @action(detail=True, methods=('POST', 'DELETE'))
-    def favorite(self, request: Request, pk: int) -> Response:
+    def favorite(self, request, pk):
         """Добавление/удаление из избранного."""
         return self._manage_recipe_relation(
             request, pk, Favorite, ALREADY_IN_FAVORITES_ERROR
         )
 
     @action(detail=False)
-    def download_shopping_cart(self, request: Request) -> FileResponse:
+    def download_shopping_cart(self, request):
         """Скачивание списка покупок."""
         return RecipeService.generate_shopping_cart_file(user=request.user)
 
     @action(detail=True, url_path='get-link')
-    def get_link(self, request: Request, pk: int = None) -> Response:
+    def get_link(self, request, pk=None):
         """Получить короткую ссылку на рецепт."""
         recipe_instance = get_object_or_404(Recipe, pk=pk)
         short_link = request.build_absolute_uri(
