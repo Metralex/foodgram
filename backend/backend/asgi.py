@@ -1,26 +1,16 @@
-"""ASGI точка входа для бэкенда Foodgram."""
+"""
+ASGI config for app project.
 
-from __future__ import annotations
+It exposes the ASGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
+"""
 
 import os
-from functools import lru_cache
 
 from django.core.asgi import get_asgi_application
-from django.core.handlers.asgi import ASGIHandler
 
-SETTINGS_MODULE = "backend.settings"
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')
 
-
-def _configure_environment() -> None:
-    """Убедиться, что Django использует правильный модуль настроек."""
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", SETTINGS_MODULE)
-
-
-@lru_cache(maxsize=1)
-def _build_application() -> ASGIHandler:
-    """Возвращает кэшированный экземпляр ASGI приложения."""
-    _configure_environment()
-    return get_asgi_application()
-
-
-application: ASGIHandler = _build_application()
+application = get_asgi_application()
