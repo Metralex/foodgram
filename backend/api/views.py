@@ -122,15 +122,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = filters.RecipeFilterSet
     filter_backends = (DjangoFilterBackend,)
     permission_classes = (permissions.IsAuthorOrReadOnly,)
+    serializer_class = serializers.RecipeSerializer
     queryset = Recipe.objects.select_related('author').prefetch_related(
         'tags', 'ingredients'
     ).all()
-
-    def get_serializer_class(self):
-        return serializers.RecipeSerializer
-
-    def perform_create(self, serializer):
-        pass
 
     def _manage_recipe_relation(
         self, request, pk, relation_model, error_message
