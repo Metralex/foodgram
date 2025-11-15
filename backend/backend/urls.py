@@ -7,7 +7,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import URLPattern, URLResolver, include, path
 
-from api.views_recipe import short_link_redirect
+from api.views import short_link_redirect
 
 
 def _static_patterns() -> list[URLPattern]:

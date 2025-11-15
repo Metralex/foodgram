@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
+from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
@@ -209,3 +210,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
             reverse('short_url', args=(recipe_instance.short_url_code,))
         )
         return Response({'short-link': short_link}, status=status.HTTP_200_OK)
+
+
+def short_link_redirect(request, slug):
+    """Перенаправляет с короткого кода на полную страницу рецепта."""
+    recipe = get_object_or_404(Recipe, short_url_code=slug)
+    redirect_url = request.build_absolute_uri(f"/recipes/{recipe.id}/")
+    return HttpResponsePermanentRedirect(redirect_url)
+
+
+
+
+
