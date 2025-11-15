@@ -1,7 +1,5 @@
 """Классы прав доступа для API Foodgram."""
 
-from __future__ import annotations
-
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticatedOrReadOnly
 
 

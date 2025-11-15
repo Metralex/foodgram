@@ -1,7 +1,5 @@
 """Классы пагинации для API Foodgram."""
 
-from __future__ import annotations
-
 from rest_framework.pagination import PageNumberPagination
 
 from backend.settings import MAX_PAGE_SIZE
