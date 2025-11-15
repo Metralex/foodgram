@@ -45,15 +45,14 @@ class UserViewSet(DjoserUserViewSet):
                 return Response(status=status.HTTP_404_NOT_FOUND)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        if request.user == author:
-            raise ValidationError(dict(error=SELF_SUBSCRIPTION_ERROR))
-
-        subscription, created = Subscription.objects.get_or_create(
-            subscriber=request.user, author=author
+        # Создаем через сериализатор
+        subscription_serializer = serializers.SubscriptionSerializer(
+            data={'subscriber': request.user.id, 'author': author.id}
         )
-        if not created:
-            raise ValidationError(dict(error=ALREADY_SUBSCRIBED_ERROR))
+        subscription_serializer.is_valid(raise_exception=True)
+        subscription_serializer.save()
 
+        # Возвращаем данные автора
         serializer = serializers.ReadSubscriptionSerializer(
             author, context={'request': request}
         )
@@ -147,14 +146,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 return Response(status=status.HTTP_404_NOT_FOUND)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        instance, created = relation_model.objects.get_or_create(
-            user=request.user, recipe=recipe
+        # Определяем нужный сериализатор
+        serializer_class = (
+            serializers.FavoriteSerializer
+            if relation_model == Favorite
+            else serializers.ShoppingCartSerializer
         )
-        if not created:
-            raise ValidationError(dict(error=error_message))
 
-        serializer = serializers.ShortRecipeSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # Создаем через сериализатор
+        relation_serializer = serializer_class(
+            data={'user': request.user.id, 'recipe': recipe.id}
+        )
+        relation_serializer.is_valid(raise_exception=True)
+        relation_serializer.save()
+
+        # Возвращаем данные рецепта
+        recipe_serializer = serializers.ShortRecipeSerializer(recipe)
+        return Response(recipe_serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=('POST', 'DELETE'))
     def shopping_cart(self, request, pk):

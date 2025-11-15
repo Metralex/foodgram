@@ -147,19 +147,15 @@ class RecipeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(message)
         return ingredients
 
-    def create(self, validated_data):
-        """Создает новый рецепт."""
-        author = self.context['request'].user
-        ingredients_data = validated_data.pop('ingredients_list')
-        tags_data = validated_data.pop('tags_list')
-        image = validated_data.pop('image')
-
-        recipe = Recipe.objects.create(
-            author=author, image=image, **validated_data
-        )
+    def _set_tags(self, recipe, tags_data):
+        """Устанавливает теги рецепта."""
         recipe.tags.set(tags_data)
 
-        # Создаем связи с ингредиентами
+    def _set_ingredients(self, recipe, ingredients_data):
+        """Создает связи рецепта с ингредиентами."""
+        if not ingredients_data:
+            return
+
         RecipeIngredient.objects.bulk_create([
             RecipeIngredient(
                 recipe=recipe,
@@ -168,33 +164,32 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
             for item in ingredients_data
         ])
+
+    def create(self, validated_data):
+        """Создает новый рецепт."""
+        author = self.context['request'].user
+        ingredients_data = validated_data.pop('ingredients_list')
+        tags_data = validated_data.pop('tags_list')
+        validated_data['image'] = validated_data.pop('image')
+
+        recipe = Recipe.objects.create(author=author, **validated_data)
+        self._set_tags(recipe, tags_data)
+        self._set_ingredients(recipe, ingredients_data)
         return recipe
 
     def update(self, instance, validated_data):
         """Обновляет рецепт."""
-        if 'tags_list' in validated_data:
-            instance.tags.set(validated_data.pop('tags_list'))
+        tags_data = validated_data.pop('tags_list', None)
+        ingredients_data = validated_data.pop('ingredients_list', None)
 
-        if 'ingredients_list' in validated_data:
-            ingredients_data = validated_data.pop('ingredients_list')
+        if tags_data is not None:
+            self._set_tags(instance, tags_data)
+
+        if ingredients_data is not None:
             instance.ingredients.clear()
-            RecipeIngredient.objects.bulk_create([
-                RecipeIngredient(
-                    recipe=instance,
-                    ingredient=item['ingredient'],
-                    amount=item['amount'],
-                )
-                for item in ingredients_data
-            ])
+            self._set_ingredients(instance, ingredients_data)
 
-        if 'image' in validated_data:
-            instance.image = validated_data.pop('image')
-
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-
-        instance.save()
-        return instance
+        return super().update(instance, validated_data)
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
@@ -223,3 +218,61 @@ class ReadSubscriptionSerializer(UserSerializer):
         return ShortRecipeSerializer(
             author_recipes, context=self.context, many=True
         ).data
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для избранного."""
+
+    class Meta:
+        model = Favorite
+        fields = ('user', 'recipe')
+
+    def validate(self, data):
+        """Проверка на дублирование."""
+        if Favorite.objects.filter(
+            user=data['user'], recipe=data['recipe']
+        ).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже есть в избранном'
+            )
+        return data
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    """Сериализатор для списка покупок."""
+
+    class Meta:
+        model = ShoppingCart
+        fields = ('user', 'recipe')
+
+    def validate(self, data):
+        """Проверка на дублирование."""
+        if ShoppingCart.objects.filter(
+            user=data['user'], recipe=data['recipe']
+        ).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже есть в списке покупок'
+            )
+        return data
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    """Сериализатор для подписок."""
+
+    class Meta:
+        model = Subscription
+        fields = ('subscriber', 'author')
+
+    def validate(self, data):
+        """Проверка на корректность подписки."""
+        if data['subscriber'] == data['author']:
+            raise serializers.ValidationError(
+                'Нельзя подписаться на самого себя'
+            )
+        if Subscription.objects.filter(
+            subscriber=data['subscriber'], author=data['author']
+        ).exists():
+            raise serializers.ValidationError(
+                'Вы уже подписаны на этого автора'
+            )
+        return data
