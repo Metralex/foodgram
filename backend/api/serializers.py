@@ -6,7 +6,6 @@ from rest_framework import serializers
 
 from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                      ShoppingCart, Subscription, Tag)
-from .services import RecipeService
 
 User = get_user_model()
 
@@ -149,22 +148,53 @@ class RecipeSerializer(serializers.ModelSerializer):
         return ingredients
 
     def create(self, validated_data):
+        """Создает новый рецепт."""
         author = self.context['request'].user
-        validated_data['tags'] = validated_data.pop('tags_list')
-        validated_data['ingredients'] = validated_data.pop('ingredients_list')
-        validated_data['image'] = validated_data.pop('image')
-        return RecipeService.create_recipe(author, validated_data)
+        ingredients_data = validated_data.pop('ingredients_list')
+        tags_data = validated_data.pop('tags_list')
+        image = validated_data.pop('image')
+
+        recipe = Recipe.objects.create(
+            author=author, image=image, **validated_data
+        )
+        recipe.tags.set(tags_data)
+
+        # Создаем связи с ингредиентами
+        RecipeIngredient.objects.bulk_create([
+            RecipeIngredient(
+                recipe=recipe,
+                ingredient=item['ingredient'],
+                amount=item['amount'],
+            )
+            for item in ingredients_data
+        ])
+        return recipe
 
     def update(self, instance, validated_data):
+        """Обновляет рецепт."""
         if 'tags_list' in validated_data:
-            validated_data['tags'] = validated_data.pop('tags_list')
+            instance.tags.set(validated_data.pop('tags_list'))
+
         if 'ingredients_list' in validated_data:
-            validated_data['ingredients'] = validated_data.pop(
-                'ingredients_list'
-            )
+            ingredients_data = validated_data.pop('ingredients_list')
+            instance.ingredients.clear()
+            RecipeIngredient.objects.bulk_create([
+                RecipeIngredient(
+                    recipe=instance,
+                    ingredient=item['ingredient'],
+                    amount=item['amount'],
+                )
+                for item in ingredients_data
+            ])
+
         if 'image' in validated_data:
-            validated_data['image'] = validated_data.pop('image')
-        return RecipeService.update_recipe(instance, validated_data)
+            instance.image = validated_data.pop('image')
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):

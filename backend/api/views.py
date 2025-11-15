@@ -12,15 +12,14 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from . import filters, pagination, permissions, serializers
-from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
-from .services import RecipeService, UserService
+from .models import (Favorite, Ingredient, Recipe, ShoppingCart, Tag,
+                     RecipeIngredient, Subscription)
 
 User = get_user_model()
-
 SELF_SUBSCRIPTION_ERROR = 'Нельзя подписаться на самого себя'
 ALREADY_SUBSCRIBED_ERROR = 'Вы уже подписаны на этого автора'
-ALREADY_IN_FAVORITES_ERROR = 'Рецепт уже есть в избранном'
 ALREADY_IN_CART_ERROR = 'Рецепт уже есть в списке покупок'
+ALREADY_IN_FAVORITES_ERROR = 'Рецепт уже есть в избранном'
 
 
 class UserViewSet(DjoserUserViewSet):
@@ -39,19 +38,19 @@ class UserViewSet(DjoserUserViewSet):
         author = get_object_or_404(User, pk=id)
 
         if request.method == 'DELETE':
-            was_deleted = UserService.unsubscribe_from_author(
+            deleted_count, _ = Subscription.objects.filter(
                 subscriber=request.user, author=author
-            )
-            if not was_deleted:
+            ).delete()
+            if not deleted_count:
                 return Response(status=status.HTTP_404_NOT_FOUND)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        subscription, created = UserService.subscribe_to_author(
+        if request.user == author:
+            raise ValidationError(dict(error=SELF_SUBSCRIPTION_ERROR))
+
+        subscription, created = Subscription.objects.get_or_create(
             subscriber=request.user, author=author
         )
-
-        if not subscription and not created:
-            raise ValidationError(dict(error=SELF_SUBSCRIPTION_ERROR))
         if not created:
             raise ValidationError(dict(error=ALREADY_SUBSCRIBED_ERROR))
 
@@ -67,8 +66,8 @@ class UserViewSet(DjoserUserViewSet):
     )
     def subscriptions(self, request):
         """Список подписок пользователя."""
-        authors_queryset = UserService.get_user_subscriptions(
-            user=request.user
+        authors_queryset = User.objects.filter(
+            authors__subscriber=request.user
         )
         paginated_authors = self.paginate_queryset(authors_queryset)
         serializer_instance = serializers.ReadSubscriptionSerializer(
@@ -134,21 +133,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         pass
 
-    def _manage_recipe_relation(self, request, pk, relation_model,
-                                error_message: str):
+    def _manage_recipe_relation(
+        self, request, pk, relation_model, error_message
+    ):
         """Добавление/удаление рецепта в избранное или список покупок."""
         recipe = get_object_or_404(Recipe, pk=pk)
 
         if request.method == 'DELETE':
-            was_deleted = RecipeService.remove_recipe_relation(
-                user=request.user, recipe=recipe, relation_model=relation_model
-            )
-            if not was_deleted:
+            deleted_count, _ = relation_model.objects.filter(
+                user=request.user, recipe=recipe
+            ).delete()
+            if not deleted_count:
                 return Response(status=status.HTTP_404_NOT_FOUND)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        _, created = RecipeService.manage_recipe_relation(
-            user=request.user, recipe=recipe, relation_model=relation_model
+        instance, created = relation_model.objects.get_or_create(
+            user=request.user, recipe=recipe
         )
         if not created:
             raise ValidationError(dict(error=error_message))
@@ -173,7 +173,30 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False)
     def download_shopping_cart(self, request):
         """Скачивание списка покупок."""
-        return RecipeService.generate_shopping_cart_file(user=request.user)
+        from django.db.models import Sum
+        from django.http import FileResponse
+        from . import utils
+
+        ingredients = (
+            RecipeIngredient.objects.filter(
+                recipe__shoppingcarts__user=request.user
+            )
+            .select_related('recipe', 'ingredient')
+            .values('ingredient__name', 'ingredient__measurement_unit')
+            .annotate(amount=Sum('amount'))
+            .order_by('ingredient__name')
+        )
+        recipes = Recipe.objects.filter(
+            shoppingcarts__user=request.user
+        ).distinct()
+
+        file_content = utils.make_shopping_cart_file(ingredients, recipes)
+        return FileResponse(
+            file_content,
+            as_attachment=True,
+            filename='shopping_cart.txt',
+            content_type='text/plain',
+        )
 
     @action(detail=True, url_path='get-link')
     def get_link(self, request, pk=None):

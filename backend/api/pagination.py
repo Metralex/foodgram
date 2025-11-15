@@ -6,6 +6,7 @@ from rest_framework.pagination import PageNumberPagination
 
 from backend.settings import MAX_PAGE_SIZE
 
+
 class LimitPageNumberPagination(PageNumberPagination):
     """Пагинация."""
 
