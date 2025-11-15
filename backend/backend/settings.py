@@ -171,9 +171,4 @@ USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
-def _parse_csrf_origins() -> List[str]:
-    """Return trusted origins defined via environment variables."""
-    return _env_list("CSRF_TRUSTED_ORIGINS")
-
-
-CSRF_TRUSTED_ORIGINS = _parse_csrf_origins()
+CSRF_TRUSTED_ORIGINS = _env_list("CSRF_TRUSTED_ORIGINS")

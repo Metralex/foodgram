@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from django.contrib import admin
 
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+
 from .models import (
     Favorite,
     Ingredient,
@@ -37,14 +39,21 @@ class IngredientAdmin(admin.ModelAdmin):
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(BaseUserAdmin):
     """Админка для управления пользователями."""
 
-    list_filter = ("email", "username", "is_staff", "is_active")
+    list_filter = BaseUserAdmin.list_filter + ("email",)
     search_fields = ("email", "username", "first_name", "last_name")
     list_display = ("email", "username", "first_name", "last_name", "is_staff")
     ordering = ("username",)
-    readonly_fields = ("last_login", "date_joined")
+
+    fieldsets = BaseUserAdmin.fieldsets + (
+        ("Дополнительная информация", {"fields": ("avatar",)}),
+    )
+
+    add_fieldsets = BaseUserAdmin.add_fieldsets + (
+        ("Дополнительная информация", {"fields": ("first_name", "last_name", "avatar")}),
+    )
 
 
 class RecipeIngredientInline(admin.TabularInline):
