@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "djoser",
+    "users",
+    "recipes",
     "api",
 ]
 
@@ -128,7 +130,7 @@ STATIC_ROOT = BASE_DIR / "collected_static"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-AUTH_USER_MODEL = "api.User"
+AUTH_USER_MODEL = "users.User"
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
