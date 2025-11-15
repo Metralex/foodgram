@@ -159,23 +159,35 @@ class RecipeIngredient(models.Model):
         return f"{self.recipe} - {self.ingredient}"
 
 
-class Favorite(models.Model):
-    """Избранный рецепт пользователя."""
+class UserRecipeRelation(models.Model):
+    """Абстрактная модель связи пользователя с рецептом."""
 
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name="favorites",
+        related_name="%(class)s_set",
         verbose_name="Пользователь",
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name="favorites",
+        related_name="%(class)ss",
         verbose_name="Рецепт",
     )
 
     class Meta:
+        abstract = True
+        ordering = ("user", "recipe")
+
+    def __str__(self):
+        return f"{self.user} - {self.recipe}"
+
+
+class Favorite(UserRecipeRelation):
+    """Избранный рецепт пользователя."""
+
+    class Meta(UserRecipeRelation.Meta):
+        abstract = False
         verbose_name = "Избранное"
         verbose_name_plural = "Избранное"
         constraints = [
@@ -185,27 +197,12 @@ class Favorite(models.Model):
             )
         ]
 
-    def __str__(self):
-        return f"{self.user} - {self.recipe}"
 
-
-class ShoppingCart(models.Model):
+class ShoppingCart(UserRecipeRelation):
     """Рецепт в списке покупок пользователя."""
 
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="shopping_cart",
-        verbose_name="Пользователь",
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name="shoppingcarts",
-        verbose_name="Рецепт",
-    )
-
-    class Meta:
+    class Meta(UserRecipeRelation.Meta):
+        abstract = False
         verbose_name = "Корзина покупок"
         verbose_name_plural = "Корзина покупок"
         constraints = [
@@ -214,6 +211,3 @@ class ShoppingCart(models.Model):
                 name="unique_shopping_cart",
             )
         ]
-
-    def __str__(self):
-        return f"{self.user} - {self.recipe}"
