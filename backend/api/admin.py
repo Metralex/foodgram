@@ -52,7 +52,8 @@ class UserAdmin(BaseUserAdmin):
     )
 
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
-        ("Дополнительная информация", {"fields": ("first_name", "last_name", "avatar")}),
+        ("Дополнительная информация", {"fields": (
+            "first_name", "last_name", "avatar")}),
     )
 
 
