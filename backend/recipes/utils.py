@@ -1,6 +1,4 @@
-"""Утилиты для API Foodgram."""
-
-from __future__ import annotations
+"""Утилиты для рецептов."""
 
 from io import BytesIO
 
@@ -19,9 +17,9 @@ def _format_ingredient_line(position, ingredient_data):
     )
 
 
-def _format_recipe_line(position, recipe_obj):
+def _format_recipe_line(position, recipe):
     """Форматирует строку с названием рецепта."""
-    return f"{position}. {recipe_obj.name}"
+    return f"{position}. {recipe.name}"
 
 
 def make_shopping_cart_file(ingredients_data, recipes_queryset):

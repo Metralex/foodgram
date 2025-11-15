@@ -1,6 +1,4 @@
-"""Валидаторы для API Foodgram."""
-
-from __future__ import annotations
+"""Валидаторы для пользователей."""
 
 import re
 

@@ -7,14 +7,15 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
+from users.models import Subscription
+
 from . import filters, pagination, permissions, serializers
-from .models import (Favorite, Ingredient, Recipe, ShoppingCart, Tag,
-                     RecipeIngredient, Subscription)
 
 User = get_user_model()
 SELF_SUBSCRIPTION_ERROR = 'Нельзя подписаться на самого себя'
@@ -179,7 +180,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Скачивание списка покупок."""
         from django.db.models import Sum
         from django.http import FileResponse
-        from . import utils
+
+        from recipes import utils
 
         ingredients = (
             RecipeIngredient.objects.filter(
@@ -217,8 +219,3 @@ def short_link_redirect(request, slug):
     recipe = get_object_or_404(Recipe, short_url_code=slug)
     redirect_url = request.build_absolute_uri(f"/recipes/{recipe.id}/")
     return HttpResponsePermanentRedirect(redirect_url)
-
-
-
-
-

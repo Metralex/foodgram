@@ -12,7 +12,6 @@ class IsAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
 
     def has_object_permission(self, request, view, obj):
         """Проверяет права доступа пользователя к объекту."""
-
         if request.method in SAFE_METHODS:
             return True
 
