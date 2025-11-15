@@ -4,16 +4,16 @@ from djoser.serializers import UserSerializer as DjoserUserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from .models import (
-    Favorite, Ingredient, Recipe, RecipeIngredient,
-    ShoppingCart, Subscription, Tag
-)
+from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                     ShoppingCart, Subscription, Tag)
 from .services import RecipeService
 
 User = get_user_model()
 
 
 class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор для тегов."""
+
     class Meta:
         model = Tag
         fields = '__all__'
@@ -21,6 +21,8 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для ингредиентов."""
+
     class Meta:
         model = Ingredient
         fields = '__all__'
@@ -28,6 +30,8 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(DjoserUserSerializer):
+    """Сериализатор для пользователей."""
+
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -46,6 +50,8 @@ class UserSerializer(DjoserUserSerializer):
 
 
 class AvatarSerializer(serializers.ModelSerializer):
+    """Сериализатор для аватаров."""
+
     avatar = Base64ImageField()
 
     class Meta:
@@ -54,6 +60,8 @@ class AvatarSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для ингредиентов в рецепте."""
+
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(), source='ingredient'
     )
@@ -71,6 +79,8 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для рецептов."""
+
     tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
     ingredients = RecipeIngredientSerializer(
@@ -158,6 +168,8 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для краткого представления рецептов."""
+
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
@@ -165,6 +177,8 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 
 
 class ReadSubscriptionSerializer(UserSerializer):
+    """Сериализатор для подписок."""
+
     recipes_count = serializers.ReadOnlyField(source='recipes.count')
     recipes = serializers.SerializerMethodField()
 

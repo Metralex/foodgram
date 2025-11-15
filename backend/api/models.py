@@ -9,7 +9,6 @@ from django.db.models import F, Q
 
 from .validators import validate_username
 
-
 SHORT_CODE_LENGTH = 6
 SHORT_CODE_ALPHABET = ascii_letters + digits
 RECIPE_COOKING_MINIMUM = 1
@@ -20,11 +19,13 @@ INGREDIENT_AMOUNT_ERROR = 'Минимум 1'
 
 def generate_short_code(length: int = SHORT_CODE_LENGTH):
     """Генерирует случайный короткий код для рецепта."""
+
     return "".join(secure_choice(SHORT_CODE_ALPHABET) for _ in range(length))
 
 
 class Tag(models.Model):
     """Тег для категоризации рецептов."""
+
     slug = models.SlugField(
         'Слаг', max_length=200, unique=True, db_index=True
     )
@@ -41,6 +42,7 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     """Ингредиент для использования в рецептах."""
+
     name = models.CharField('Название', max_length=200)
     measurement_unit = models.CharField('Единица измерения', max_length=200)
 
@@ -55,6 +57,7 @@ class Ingredient(models.Model):
 
 class User(AbstractUser):
     """Кастомная модель пользователя с поддержкой аватара."""
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
@@ -73,7 +76,6 @@ class User(AbstractUser):
         'Аватар',
         upload_to=settings.AVATARS_PATH,
         blank=True,
-        null=True,
     )
 
     class Meta:
@@ -91,6 +93,7 @@ class User(AbstractUser):
 
 class Recipe(models.Model):
     """Рецепт с ингредиентами и тегами."""
+
     name = models.CharField('Название', max_length=200)
     text = models.TextField('Описание')
     image = models.ImageField(
@@ -152,6 +155,7 @@ class Recipe(models.Model):
 
 class RecipeIngredient(models.Model):
     """Связь между рецептом и ингредиентом с количеством."""
+
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
@@ -186,6 +190,7 @@ class RecipeIngredient(models.Model):
 
 class Subscription(models.Model):
     """Подписка пользователя на автора."""
+
     subscriber = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -219,6 +224,7 @@ class Subscription(models.Model):
 
 class Favorite(models.Model):
     """Избранный рецепт пользователя."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -248,6 +254,7 @@ class Favorite(models.Model):
 
 class ShoppingCart(models.Model):
     """Рецепт в списке покупок пользователя."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
