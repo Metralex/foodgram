@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
 from django.http import HttpResponsePermanentRedirect
+from django.db.models import Exists, OuterRef
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
@@ -125,41 +126,41 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     permission_classes = (permissions.IsAuthorOrReadOnly,)
     serializer_class = serializers.RecipeSerializer
-    queryset = Recipe.objects.select_related('author').prefetch_related(
-        'tags', 'ingredients'
-    ).all()
 
-    def _manage_recipe_relation(
-        self, request, pk, relation_model, error_message
-    ):
-        """Добавление/удаление рецепта в избранное или список покупок."""
-        recipe = get_object_or_404(Recipe, pk=pk)
-
-        if request.method == 'DELETE':
-            deleted_count, _ = relation_model.objects.filter(
-                user=request.user, recipe=recipe
-            ).delete()
-            if not deleted_count:
-                return Response(status=status.HTTP_404_NOT_FOUND)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        # Определяем нужный сериализатор
-        serializer_class = (
-            serializers.FavoriteSerializer
-            if relation_model == Favorite
-            else serializers.ShoppingCartSerializer
+    def get_queryset(self):
+        """Возвращает queryset с аннотациями."""
+        user = self.request.user
+        queryset = Recipe.objects.select_related('author').prefetch_related(
+            'tags', 'ingredients'
         )
-
-        # Создаем через сериализатор
-        relation_serializer = serializer_class(
-            data={'user': request.user.id, 'recipe': recipe.id}
-        )
-        relation_serializer.is_valid(raise_exception=True)
-        relation_serializer.save()
-
-        # Возвращаем данные рецепта
-        recipe_serializer = serializers.ShortRecipeSerializer(recipe)
-        return Response(recipe_serializer.data, status=status.HTTP_201_CREATED)
+        
+        if user.is_authenticated:
+            # Аннотация: есть ли рецепт в избранном текущего пользователя
+            queryset = queryset.annotate(
+                is_favorited=Exists(
+                    Favorite.objects.filter(
+                        user=user, recipe=OuterRef('pk')
+                    )
+                )
+            )
+            # Аннотация: есть ли рецепт в корзине текущего пользователя
+            queryset = queryset.annotate(
+                is_in_shopping_cart=Exists(
+                    ShoppingCart.objects.filter(
+                        user=user, recipe=OuterRef('pk')
+                    )
+                )
+            )
+        else:
+            # Для анонимных пользователей — всегда False
+            queryset = queryset.annotate(
+                is_favorited=models.Value(False, output_field=models.BooleanField())
+            )
+            queryset = queryset.annotate(
+                is_in_shopping_cart=models.Value(False, output_field=models.BooleanField())
+            )
+        
+        return queryset
 
     @action(detail=True, methods=('POST', 'DELETE'))
     def shopping_cart(self, request, pk):

@@ -86,21 +86,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientSerializer(
         source='recipeingredients', many=True, read_only=True
     )
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
-
-    image_b64 = Base64ImageField(
-        source='image', write_only=True, required=True
-    )
-    tags_list = serializers.ListField(
-        child=serializers.PrimaryKeyRelatedField(
-            queryset=Tag.objects.all()
-        ),
-        write_only=True,
-    )
-    ingredients_list = serializers.ListField(
-        child=RecipeIngredientSerializer(), write_only=True
-    )
+    is_favorited = serializers.BooleanField(read_only=True)
+    is_in_shopping_cart = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Recipe
@@ -113,20 +100,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'id', 'author', 'tags', 'ingredients',
             'is_favorited', 'is_in_shopping_cart', 'image',
-        )
-
-    def get_is_favorited(self, recipe):
-        user = self.context['request'].user
-        return (
-            user.is_authenticated
-            and Favorite.objects.filter(user=user, recipe=recipe).exists()
-        )
-
-    def get_is_in_shopping_cart(self, recipe):
-        user = self.context['request'].user
-        return (
-            user.is_authenticated
-            and ShoppingCart.objects.filter(user=user, recipe=recipe).exists()
         )
 
     def validate_tags_list(self, tags):
