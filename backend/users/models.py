@@ -5,36 +5,41 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import F, Q
 
+from users.constants import (
+    EMAIL_MAX_LENGTH,
+    NAME_MAX_LENGTH,
+    USERNAME_MAX_LENGTH,
+)
 from .validators import validate_username
 
 
 class User(AbstractUser):
     """Кастомная модель пользователя с поддержкой аватара."""
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username", "first_name", "last_name"]
 
     email = models.EmailField(
-        'Email', max_length=254, unique=True
+        "Email", max_length=EMAIL_MAX_LENGTH, unique=True
     )
     username = models.CharField(
-        'Имя пользователя',
-        max_length=150,
+        "Имя пользователя",
+        max_length=USERNAME_MAX_LENGTH,
         unique=True,
         validators=[validate_username],
     )
-    first_name = models.CharField('Имя', max_length=150)
-    last_name = models.CharField('Фамилия', max_length=150)
+    first_name = models.CharField("Имя", max_length=NAME_MAX_LENGTH)
+    last_name = models.CharField("Фамилия", max_length=NAME_MAX_LENGTH)
     avatar = models.ImageField(
-        'Аватар',
+        "Аватар",
         upload_to=settings.AVATARS_PATH,
         blank=True,
     )
 
     class Meta:
-        ordering = ('username',)
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
+        ordering = ("username",)
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
 
     def __str__(self):
         return self.username
@@ -50,27 +55,27 @@ class Subscription(models.Model):
     subscriber = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='subscribers',
-        verbose_name='Подписчик',
+        related_name="subscribers",
+        verbose_name="Подписчик",
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='authors',
-        verbose_name='Автор',
+        related_name="authors",
+        verbose_name="Автор",
     )
 
     class Meta:
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
         constraints = [
             models.UniqueConstraint(
-                fields=['subscriber', 'author'],
-                name='unique_subscription',
+                fields=["subscriber", "author"],
+                name="unique_subscription",
             ),
             models.CheckConstraint(
-                check=~Q(subscriber=F('author')),
-                name='prevent_self_subscription',
+                check=~Q(subscriber=F("author")),
+                name="prevent_self_subscription",
             ),
         ]
 
