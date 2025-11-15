@@ -134,7 +134,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         pass
 
-    def _manage_recipe_relation(self, request, pk, relation_model, error_msg):
+    def _manage_recipe_relation(self, request, pk, relation_model,
+                                error_message: str):
         """Добавление/удаление рецепта в избранное или список покупок."""
         recipe = get_object_or_404(Recipe, pk=pk)
 
@@ -150,7 +151,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             user=request.user, recipe=recipe, relation_model=relation_model
         )
         if not created:
-            raise ValidationError(dict(error=error_msg))
+            raise ValidationError(dict(error=error_message))
 
         serializer = serializers.ShortRecipeSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

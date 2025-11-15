@@ -99,7 +99,7 @@ class Recipe(models.Model):
     image = models.ImageField(
         'Изображение', upload_to=settings.RECIPES_IMAGES_PATH
     )
-    cooking_time = models.PositiveIntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         'Время приготовления (мин)',
         validators=[
             MinValueValidator(RECIPE_COOKING_MINIMUM, RECIPE_COOKING_ERROR)
@@ -124,7 +124,6 @@ class Recipe(models.Model):
         'Короткий код',
         max_length=SHORT_CODE_LENGTH,
         unique=True,
-        blank=True,
         db_index=True,
     )
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
@@ -149,8 +148,8 @@ class Recipe(models.Model):
             except IntegrityError:
                 self.short_url_code = generate_short_code()
 
-        msg = f"Не удалось сгенерировать код за {max_attempts} попыток."
-        raise IntegrityError(msg)
+        message = f"Не удалось сгенерировать код за {max_attempts} попыток."
+        raise IntegrityError(message)
 
 
 class RecipeIngredient(models.Model):
@@ -166,7 +165,7 @@ class RecipeIngredient(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Ингредиент',
     )
-    amount = models.PositiveIntegerField(
+    amount = models.PositiveSmallIntegerField(
         'Количество',
         validators=[MinValueValidator(INGREDIENT_AMOUNT_MINIMUM,
                     INGREDIENT_AMOUNT_ERROR)],

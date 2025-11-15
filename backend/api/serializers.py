@@ -16,7 +16,7 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
-        fields = '__all__'
+        fields = ('id', 'name', 'slug')
         read_only_fields = ('id', 'name', 'slug')
 
 
@@ -25,7 +25,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = '__all__'
+        fields = ('id', 'name', 'measurement_unit')
         read_only_fields = ('id', 'name', 'measurement_unit')
 
 
@@ -131,21 +131,21 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def validate_tags_list(self, tags):
         if not tags:
-            msg = 'Нужно выбрать хотя бы один тег.'
-            raise serializers.ValidationError(msg)
+            message = 'Нужно выбрать хотя бы один тег.'
+            raise serializers.ValidationError(message)
         if len(set(tag.id for tag in tags)) != len(tags):
-            msg = 'Теги не должны повторяться.'
-            raise serializers.ValidationError(msg)
+            message = 'Теги не должны повторяться.'
+            raise serializers.ValidationError(message)
         return tags
 
     def validate_ingredients_list(self, ingredients):
         if not ingredients:
-            msg = 'Нужно добавить хотя бы один ингредиент.'
-            raise serializers.ValidationError(msg)
+            message = 'Нужно добавить хотя бы один ингредиент.'
+            raise serializers.ValidationError(message)
         ingredient_ids = [item['ingredient'].id for item in ingredients]
         if len(set(ingredient_ids)) != len(ingredient_ids):
-            msg = 'Ингредиенты не должны повторяться.'
-            raise serializers.ValidationError(msg)
+            message = 'Ингредиенты не должны повторяться.'
+            raise serializers.ValidationError(message)
         return ingredients
 
     def create(self, validated_data):
