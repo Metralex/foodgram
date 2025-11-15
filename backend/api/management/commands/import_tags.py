@@ -6,11 +6,10 @@ import csv
 from pathlib import Path
 from typing import Any
 
+from api.models import Tag
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandParser
 from django.utils.text import slugify
-
-from api.models import Tag
 
 
 class Command(BaseCommand):

@@ -1,19 +1,24 @@
 from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
+from django.db.models import BooleanField, Exists, OuterRef, Value
 from django.http import HttpResponsePermanentRedirect
-from django.db.models import Exists, OuterRef
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
+from recipes.models import (
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    ShoppingCart,
+    Tag,
+)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
 from users.models import Subscription
 
 from . import filters, pagination, permissions, serializers
@@ -133,9 +138,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         queryset = Recipe.objects.select_related('author').prefetch_related(
             'tags', 'ingredients'
         )
-        
+
         if user.is_authenticated:
-            # Аннотация: есть ли рецепт в избранном текущего пользователя
             queryset = queryset.annotate(
                 is_favorited=Exists(
                     Favorite.objects.filter(
@@ -143,7 +147,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     )
                 )
             )
-            # Аннотация: есть ли рецепт в корзине текущего пользователя
             queryset = queryset.annotate(
                 is_in_shopping_cart=Exists(
                     ShoppingCart.objects.filter(
@@ -152,14 +155,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 )
             )
         else:
-            # Для анонимных пользователей — всегда False
             queryset = queryset.annotate(
-                is_favorited=models.Value(False, output_field=models.BooleanField())
+                is_favorited=Value(
+                    False, output_field=BooleanField()
+                )
             )
             queryset = queryset.annotate(
-                is_in_shopping_cart=models.Value(False, output_field=models.BooleanField())
+                is_in_shopping_cart=Value(
+                    False, output_field=BooleanField()
+                )
             )
-        
+
         return queryset
 
     @action(detail=True, methods=('POST', 'DELETE'))
@@ -181,7 +187,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Скачивание списка покупок."""
         from django.db.models import Sum
         from django.http import FileResponse
-
         from recipes import utils
 
         ingredients = (

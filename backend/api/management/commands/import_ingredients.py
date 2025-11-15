@@ -6,10 +6,9 @@ import csv
 from pathlib import Path
 from typing import Any
 
+from api.models import Ingredient
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandParser
-
-from api.models import Ingredient
 
 
 class Command(BaseCommand):
