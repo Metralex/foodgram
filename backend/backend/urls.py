@@ -10,8 +10,11 @@ from django.urls import URLPattern, URLResolver, include, path
 
 
 def _static_patterns() -> list[URLPattern]:
-    """Составить правила обслуживания статических файлов и медиа, используемые
-    во время разработки."""
+    """
+    Составить правила обслуживания статических файлов и медиа.
+
+    Используемые во время разработки.
+    """
     if not settings.DEBUG:
         return []
     return [
@@ -21,8 +24,8 @@ def _static_patterns() -> list[URLPattern]:
 
 
 urlpatterns: list[URLPattern | URLResolver] = [
-    path("admin/", admin.site.urls),
-    path("api/", include("api.urls")),
-    path("s/<slug>/", short_link_redirect, name="short_url"),
+    path('admin/', admin.site.urls),
+    path('api/', include('api.urls')),
+    path('s/<slug>/', short_link_redirect, name='short_url'),
     *_static_patterns(),
 ]

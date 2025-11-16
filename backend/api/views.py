@@ -1,11 +1,14 @@
+"""Представления для API Foodgram."""
+
 from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
-from django.db.models import BooleanField, Exists, OuterRef, Value
-from django.http import HttpResponsePermanentRedirect
+from django.db.models import BooleanField, Exists, OuterRef, Sum, Value
+from django.http import FileResponse, HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
+from recipes import utils
 from recipes.models import (
     Favorite,
     Ingredient,
@@ -34,6 +37,7 @@ class UserViewSet(DjoserUserViewSet):
     """Управление пользователями."""
 
     def get_permissions(self):
+        """Определяет права доступа для разных действий."""
         if self.action in ('me', 'avatar', 'subscriptions', 'subscribe'):
             return (IsAuthenticated(),)
         if self.action == 'retrieve':
@@ -69,7 +73,7 @@ class UserViewSet(DjoserUserViewSet):
     @action(
         detail=False,
         methods=('GET',),
-        pagination_class=pagination.LimitPageNumberPagination
+        pagination_class=pagination.LimitPageNumberPagination,
     )
     def subscriptions(self, request):
         """Список подписок пользователя."""
@@ -78,7 +82,9 @@ class UserViewSet(DjoserUserViewSet):
         )
         paginated_authors = self.paginate_queryset(authors_queryset)
         serializer_instance = serializers.ReadSubscriptionSerializer(
-            paginated_authors, many=True, context={'request': request},
+            paginated_authors,
+            many=True,
+            context={'request': request},
         )
         return self.get_paginated_response(serializer_instance.data)
 
@@ -109,6 +115,7 @@ class UserViewSet(DjoserUserViewSet):
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Теги рецептов."""
+
     permission_classes = (AllowAny,)
     pagination_class = None
     serializer_class = serializers.TagSerializer
@@ -117,6 +124,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Ингредиенты."""
+
     permission_classes = (AllowAny,)
     search_fields = ('^name',)
     filter_backends = (filters.IngredientFilter,)
@@ -127,6 +135,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Управление рецептами."""
+
     filterset_class = filters.RecipeFilterSet
     filter_backends = (DjangoFilterBackend,)
     permission_classes = (permissions.IsAuthorOrReadOnly,)
@@ -142,9 +151,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if user.is_authenticated:
             queryset = queryset.annotate(
                 is_favorited=Exists(
-                    Favorite.objects.filter(
-                        user=user, recipe=OuterRef('pk')
-                    )
+                    Favorite.objects.filter(user=user, recipe=OuterRef('pk'))
                 )
             )
             queryset = queryset.annotate(
@@ -156,17 +163,43 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         else:
             queryset = queryset.annotate(
-                is_favorited=Value(
-                    False, output_field=BooleanField()
-                )
+                is_favorited=Value(False, output_field=BooleanField())
             )
             queryset = queryset.annotate(
-                is_in_shopping_cart=Value(
-                    False, output_field=BooleanField()
-                )
+                is_in_shopping_cart=Value(False, output_field=BooleanField())
             )
 
         return queryset
+
+    def _manage_recipe_relation(self, request, pk, model_class, error_message):
+        """Управляет добавлением/удалением рецепта из связанной модели."""
+        recipe = get_object_or_404(Recipe, pk=pk)
+
+        if request.method == 'DELETE':
+            deleted_count, _ = model_class.objects.filter(
+                user=request.user, recipe=recipe
+            ).delete()
+            if not deleted_count:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        # Создаем через сериализатор
+        serializer_class = (
+            serializers.FavoriteSerializer
+            if model_class == Favorite
+            else serializers.ShoppingCartSerializer
+        )
+        relation_serializer = serializer_class(
+            data={'user': request.user.id, 'recipe': recipe.id}
+        )
+        relation_serializer.is_valid(raise_exception=True)
+        relation_serializer.save()
+
+        # Возвращаем краткую информацию о рецепте
+        recipe_serializer = serializers.ShortRecipeSerializer(
+            recipe, context={'request': request}
+        )
+        return Response(recipe_serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=('POST', 'DELETE'))
     def shopping_cart(self, request, pk):
@@ -185,10 +218,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False)
     def download_shopping_cart(self, request):
         """Скачивание списка покупок."""
-        from django.db.models import Sum
-        from django.http import FileResponse
-        from recipes import utils
-
         ingredients = (
             RecipeIngredient.objects.filter(
                 recipe__shoppingcarts__user=request.user
@@ -223,5 +252,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
 def short_link_redirect(request, slug):
     """Перенаправляет с короткого кода на полную страницу рецепта."""
     recipe = get_object_or_404(Recipe, short_url_code=slug)
-    redirect_url = request.build_absolute_uri(f"/recipes/{recipe.id}/")
+    redirect_url = request.build_absolute_uri(f'/recipes/{recipe.id}/')
     return HttpResponsePermanentRedirect(redirect_url)

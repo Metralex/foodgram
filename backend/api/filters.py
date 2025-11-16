@@ -12,23 +12,25 @@ from rest_framework.filters import SearchFilter
 class IngredientFilter(SearchFilter):
     """Фильтр поиска ингредиентов по имени."""
 
-    search_param = "name"
+    search_param = 'name'
 
 
 class RecipeFilterSet(FilterSet):
     """Набор фильтров для рецептов."""
 
-    is_in_shopping_cart = BooleanFilter(method="filter_shopping_cart")
-    is_favorited = BooleanFilter(method="filter_favorites")
+    is_in_shopping_cart = BooleanFilter(method='filter_shopping_cart')
+    is_favorited = BooleanFilter(method='filter_favorites')
     tags = ModelMultipleChoiceFilter(
-        field_name="tags__slug",
-        to_field_name="slug",
+        field_name='tags__slug',
+        to_field_name='slug',
         queryset=Tag.objects.all(),
     )
 
     class Meta:
+        """Метаданные фильтра."""
+
         model = Recipe
-        fields = ("tags", "author", "is_favorited", "is_in_shopping_cart")
+        fields = ('tags', 'author', 'is_favorited', 'is_in_shopping_cart')
 
     def filter_favorites(self, queryset, field_name, flag_value):
         """Фильтрует рецепты по наличию в избранном."""

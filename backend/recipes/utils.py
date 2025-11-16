@@ -4,8 +4,8 @@ from io import BytesIO
 
 from django.utils import timezone
 
-DATETIME_FORMAT = "%d-%m-%Y %H:%M"
-ENCODING = "utf-8"
+DATETIME_FORMAT = '%d-%m-%Y %H:%M'
+ENCODING = 'utf-8'
 
 
 def _format_ingredient_line(position, ingredient_data):
@@ -19,7 +19,7 @@ def _format_ingredient_line(position, ingredient_data):
 
 def _format_recipe_line(position, recipe):
     """Форматирует строку с названием рецепта."""
-    return f"{position}. {recipe.name}"
+    return f'{position}. {recipe.name}'
 
 
 def make_shopping_cart_file(ingredients_data, recipes_queryset):
@@ -37,14 +37,14 @@ def make_shopping_cart_file(ingredients_data, recipes_queryset):
     ]
 
     document_lines = [
-        f"Дата и время: {timestamp}",
-        "",
-        "Список покупок:",
+        f'Дата и время: {timestamp}',
+        '',
+        'Список покупок:',
         *formatted_ingredients,
-        "",
-        "Список рецептов:",
+        '',
+        'Список рецептов:',
         *formatted_recipes,
     ]
 
-    content_text = "\n".join(document_lines)
+    content_text = '\n'.join(document_lines)
     return BytesIO(content_text.encode(ENCODING))

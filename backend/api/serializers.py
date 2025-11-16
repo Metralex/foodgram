@@ -1,3 +1,5 @@
+"""Сериализаторы для API Foodgram."""
+
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from djoser.serializers import UserSerializer as DjoserUserSerializer
@@ -20,6 +22,8 @@ class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для тегов."""
 
     class Meta:
+        """Метаданные сериализатора."""
+
         model = Tag
         fields = ('id', 'name', 'slug')
         read_only_fields = ('id', 'name', 'slug')
@@ -29,6 +33,8 @@ class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для ингредиентов."""
 
     class Meta:
+        """Метаданные сериализатора."""
+
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit')
         read_only_fields = ('id', 'name', 'measurement_unit')
@@ -40,18 +46,19 @@ class UserSerializer(DjoserUserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
+        """Метаданные сериализатора."""
+
         model = User
         fields = (*DjoserUserSerializer.Meta.fields, 'avatar', 'is_subscribed')
 
     def get_is_subscribed(self, user_object):
+        """Проверяет, подписан ли текущий пользователь на автора."""
         current_user = self.context.get('request').user
         if not current_user.is_authenticated:
             return False
-        return (
-            Subscription.objects.filter(
-                author=user_object, subscriber=current_user
-            ).exists()
-        )
+        return Subscription.objects.filter(
+            author=user_object, subscriber=current_user
+        ).exists()
 
 
 class AvatarSerializer(serializers.ModelSerializer):
@@ -60,6 +67,8 @@ class AvatarSerializer(serializers.ModelSerializer):
     avatar = Base64ImageField()
 
     class Meta:
+        """Метаданные сериализатора."""
+
         model = User
         fields = ('avatar',)
 
@@ -79,6 +88,8 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
+        """Метаданные сериализатора."""
+
         model = RecipeIngredient
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
@@ -95,19 +106,36 @@ class RecipeSerializer(serializers.ModelSerializer):
     is_in_shopping_cart = serializers.BooleanField(read_only=True)
 
     class Meta:
+        """Метаданные сериализатора."""
+
         model = Recipe
         fields = (
-            'id', 'tags', 'author', 'ingredients',
-            'is_favorited', 'is_in_shopping_cart',
-            'name', 'image', 'text', 'cooking_time',
-            'image_b64', 'tags_list', 'ingredients_list',
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
+            'name',
+            'image',
+            'text',
+            'cooking_time',
+            'image_b64',
+            'tags_list',
+            'ingredients_list',
         )
         read_only_fields = (
-            'id', 'author', 'tags', 'ingredients',
-            'is_favorited', 'is_in_shopping_cart', 'image',
+            'id',
+            'author',
+            'tags',
+            'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
+            'image',
         )
 
     def validate_tags_list(self, tags):
+        """Валидация списка тегов."""
         if not tags:
             message = 'Нужно выбрать хотя бы один тег.'
             raise serializers.ValidationError(message)
@@ -117,6 +145,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return tags
 
     def validate_ingredients_list(self, ingredients):
+        """Валидация списка ингредиентов."""
         if not ingredients:
             message = 'Нужно добавить хотя бы один ингредиент.'
             raise serializers.ValidationError(message)
@@ -135,14 +164,16 @@ class RecipeSerializer(serializers.ModelSerializer):
         if not ingredients_data:
             return
 
-        RecipeIngredient.objects.bulk_create([
-            RecipeIngredient(
-                recipe=recipe,
-                ingredient=item['ingredient'],
-                amount=item['amount'],
-            )
-            for item in ingredients_data
-        ])
+        RecipeIngredient.objects.bulk_create(
+            [
+                RecipeIngredient(
+                    recipe=recipe,
+                    ingredient=item['ingredient'],
+                    amount=item['amount'],
+                )
+                for item in ingredients_data
+            ]
+        )
 
     def create(self, validated_data):
         """Создает новый рецепт."""
@@ -175,6 +206,8 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для краткого представления рецептов."""
 
     class Meta:
+        """Метаданные сериализатора."""
+
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
         read_only_fields = fields
@@ -187,9 +220,12 @@ class ReadSubscriptionSerializer(UserSerializer):
     recipes = serializers.SerializerMethodField()
 
     class Meta(UserSerializer.Meta):
+        """Метаданные сериализатора."""
+
         fields = (*UserSerializer.Meta.fields, 'recipes', 'recipes_count')
 
     def get_recipes(self, author_user):
+        """Возвращает список рецептов с учетом лимита."""
         request_context = self.context.get('request')
         recipes_limit = request_context.GET.get('recipes_limit', 10**10)
         limit_value = int(recipes_limit)
@@ -203,6 +239,8 @@ class FavoriteSerializer(serializers.ModelSerializer):
     """Сериализатор для избранного."""
 
     class Meta:
+        """Метаданные сериализатора."""
+
         model = Favorite
         fields = ('user', 'recipe')
 
@@ -211,9 +249,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         if Favorite.objects.filter(
             user=data['user'], recipe=data['recipe']
         ).exists():
-            raise serializers.ValidationError(
-                'Рецепт уже есть в избранном'
-            )
+            raise serializers.ValidationError('Рецепт уже есть в избранном')
         return data
 
 
@@ -221,6 +257,8 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     """Сериализатор для списка покупок."""
 
     class Meta:
+        """Метаданные сериализатора."""
+
         model = ShoppingCart
         fields = ('user', 'recipe')
 
@@ -239,6 +277,8 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     """Сериализатор для подписок."""
 
     class Meta:
+        """Метаданные сериализатора."""
+
         model = Subscription
         fields = ('subscriber', 'author')
 

@@ -10,430 +10,454 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ("auth", "0012_alter_user_first_name_max_length"),
+        ('auth', '0012_alter_user_first_name_max_length'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name="User",
+            name='User',
             fields=[
                 (
-                    "id",
+                    'id',
                     models.BigAutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name="ID",
+                        verbose_name='ID',
                     ),
                 ),
-                ("password", models.CharField(max_length=128, verbose_name="password")),
                 (
-                    "last_login",
+                    'password',
+                    models.CharField(max_length=128, verbose_name='password'),
+                ),
+                (
+                    'last_login',
                     models.DateTimeField(
-                        blank=True, null=True, verbose_name="last login"
+                        blank=True, null=True, verbose_name='last login'
                     ),
                 ),
                 (
-                    "is_superuser",
+                    'is_superuser',
                     models.BooleanField(
                         default=False,
-                        help_text="Designates that this user has all permissions without explicitly assigning them.",
-                        verbose_name="superuser status",
+                        help_text='Designates that this user has all permissions without explicitly assigning them.',
+                        verbose_name='superuser status',
                     ),
                 ),
                 (
-                    "is_staff",
+                    'is_staff',
                     models.BooleanField(
                         default=False,
-                        help_text="Designates whether the user can log into this admin site.",
-                        verbose_name="staff status",
+                        help_text='Designates whether the user can log into this admin site.',
+                        verbose_name='staff status',
                     ),
                 ),
                 (
-                    "is_active",
+                    'is_active',
                     models.BooleanField(
                         default=True,
-                        help_text="Designates whether this user should be treated as active. Unselect this instead of deleting accounts.",
-                        verbose_name="active",
+                        help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.',
+                        verbose_name='active',
                     ),
                 ),
                 (
-                    "date_joined",
+                    'date_joined',
                     models.DateTimeField(
-                        default=django.utils.timezone.now, verbose_name="date joined"
+                        default=django.utils.timezone.now,
+                        verbose_name='date joined',
                     ),
                 ),
                 (
-                    "email",
+                    'email',
                     models.EmailField(
-                        max_length=254, unique=True, verbose_name="Электронная почта"
+                        max_length=254,
+                        unique=True,
+                        verbose_name='Электронная почта',
                     ),
                 ),
                 (
-                    "username",
+                    'username',
                     models.CharField(
                         max_length=150,
                         unique=True,
                         validators=[api.validators.validate_username],
-                        verbose_name="Имя пользователя",
+                        verbose_name='Имя пользователя',
                     ),
                 ),
-                ("first_name", models.CharField(max_length=150, verbose_name="Имя")),
-                ("last_name", models.CharField(max_length=150, verbose_name="Фамилия")),
                 (
-                    "avatar",
+                    'first_name',
+                    models.CharField(max_length=150, verbose_name='Имя'),
+                ),
+                (
+                    'last_name',
+                    models.CharField(max_length=150, verbose_name='Фамилия'),
+                ),
+                (
+                    'avatar',
                     models.ImageField(
                         blank=True,
                         null=True,
-                        upload_to="users/avatars",
-                        verbose_name="Фото профиля",
+                        upload_to='users/avatars',
+                        verbose_name='Фото профиля',
                     ),
                 ),
                 (
-                    "groups",
+                    'groups',
                     models.ManyToManyField(
                         blank=True,
-                        help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
-                        related_name="user_set",
-                        related_query_name="user",
-                        to="auth.group",
-                        verbose_name="groups",
+                        help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
+                        related_name='user_set',
+                        related_query_name='user',
+                        to='auth.group',
+                        verbose_name='groups',
                     ),
                 ),
                 (
-                    "user_permissions",
+                    'user_permissions',
                     models.ManyToManyField(
                         blank=True,
-                        help_text="Specific permissions for this user.",
-                        related_name="user_set",
-                        related_query_name="user",
-                        to="auth.permission",
-                        verbose_name="user permissions",
+                        help_text='Specific permissions for this user.',
+                        related_name='user_set',
+                        related_query_name='user',
+                        to='auth.permission',
+                        verbose_name='user permissions',
                     ),
                 ),
             ],
             options={
-                "verbose_name": "Пользователь",
-                "verbose_name_plural": "Пользователи",
-                "ordering": ("username",),
+                'verbose_name': 'Пользователь',
+                'verbose_name_plural': 'Пользователи',
+                'ordering': ('username',),
             },
             managers=[
-                ("objects", django.contrib.auth.models.UserManager()),
+                ('objects', django.contrib.auth.models.UserManager()),
             ],
         ),
         migrations.CreateModel(
-            name="Ingredient",
+            name='Ingredient',
             fields=[
                 (
-                    "id",
+                    'id',
                     models.BigAutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name="ID",
+                        verbose_name='ID',
                     ),
                 ),
-                ("name", models.CharField(max_length=200, verbose_name="Название")),
                 (
-                    "measurement_unit",
-                    models.CharField(max_length=200, verbose_name="Единица измерения"),
+                    'name',
+                    models.CharField(max_length=200, verbose_name='Название'),
+                ),
+                (
+                    'measurement_unit',
+                    models.CharField(
+                        max_length=200, verbose_name='Единица измерения'
+                    ),
                 ),
             ],
             options={
-                "verbose_name": "Ингредиент",
-                "verbose_name_plural": "Ингредиенты",
-                "ordering": ("name",),
+                'verbose_name': 'Ингредиент',
+                'verbose_name_plural': 'Ингредиенты',
+                'ordering': ('name',),
             },
         ),
         migrations.CreateModel(
-            name="Recipe",
+            name='Recipe',
             fields=[
                 (
-                    "id",
+                    'id',
                     models.BigAutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name="ID",
+                        verbose_name='ID',
                     ),
                 ),
-                ("name", models.CharField(max_length=200, verbose_name="Название")),
                 (
-                    "image",
+                    'name',
+                    models.CharField(max_length=200, verbose_name='Название'),
+                ),
+                (
+                    'image',
                     models.ImageField(
-                        upload_to="recipes/images/", verbose_name="Картинка"
+                        upload_to='recipes/images/', verbose_name='Картинка'
                     ),
                 ),
-                ("text", models.TextField(verbose_name="Описание")),
+                ('text', models.TextField(verbose_name='Описание')),
                 (
-                    "cooking_time",
+                    'cooking_time',
                     models.PositiveIntegerField(
                         validators=[
                             django.core.validators.MinValueValidator(
-                                1, "Минимум 1 минута"
+                                1, 'Минимум 1 минута'
                             )
                         ],
-                        verbose_name="Время приготовления (в минутах)",
+                        verbose_name='Время приготовления (в минутах)',
                     ),
                 ),
                 (
-                    "pub_date",
+                    'pub_date',
                     models.DateTimeField(
-                        auto_now_add=True, verbose_name="Дата публикации"
+                        auto_now_add=True, verbose_name='Дата публикации'
                     ),
                 ),
                 (
-                    "short_url_code",
+                    'short_url_code',
                     models.SlugField(
                         blank=True,
                         max_length=6,
                         unique=True,
-                        verbose_name="Короткий код",
+                        verbose_name='Короткий код',
                     ),
                 ),
                 (
-                    "author",
+                    'author',
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="recipes",
+                        related_name='recipes',
                         to=settings.AUTH_USER_MODEL,
-                        verbose_name="Автор",
+                        verbose_name='Автор',
                     ),
                 ),
             ],
             options={
-                "verbose_name": "Рецепт",
-                "verbose_name_plural": "Рецепты",
-                "ordering": ("-pub_date",),
+                'verbose_name': 'Рецепт',
+                'verbose_name_plural': 'Рецепты',
+                'ordering': ('-pub_date',),
             },
         ),
         migrations.CreateModel(
-            name="Tag",
+            name='Tag',
             fields=[
                 (
-                    "id",
+                    'id',
                     models.BigAutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name="ID",
+                        verbose_name='ID',
                     ),
                 ),
                 (
-                    "name",
+                    'name',
                     models.CharField(
-                        max_length=200, unique=True, verbose_name="Название"
+                        max_length=200, unique=True, verbose_name='Название'
                     ),
                 ),
                 (
-                    "slug",
+                    'slug',
                     models.SlugField(
-                        max_length=200, unique=True, verbose_name="Уникальный слаг"
+                        max_length=200,
+                        unique=True,
+                        verbose_name='Уникальный слаг',
                     ),
                 ),
             ],
             options={
-                "verbose_name": "Тег",
-                "verbose_name_plural": "Теги",
-                "ordering": ("name",),
+                'verbose_name': 'Тег',
+                'verbose_name_plural': 'Теги',
+                'ordering': ('name',),
             },
         ),
         migrations.CreateModel(
-            name="Subscription",
+            name='Subscription',
             fields=[
                 (
-                    "id",
+                    'id',
                     models.BigAutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name="ID",
+                        verbose_name='ID',
                     ),
                 ),
                 (
-                    "author",
+                    'author',
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="authors",
+                        related_name='authors',
                         to=settings.AUTH_USER_MODEL,
-                        verbose_name="Автор",
+                        verbose_name='Автор',
                     ),
                 ),
                 (
-                    "subscriber",
+                    'subscriber',
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="subscribers",
+                        related_name='subscribers',
                         to=settings.AUTH_USER_MODEL,
-                        verbose_name="Подписчик",
+                        verbose_name='Подписчик',
                     ),
                 ),
             ],
             options={
-                "verbose_name": "Подписка",
-                "verbose_name_plural": "Подписки",
+                'verbose_name': 'Подписка',
+                'verbose_name_plural': 'Подписки',
             },
         ),
         migrations.CreateModel(
-            name="ShoppingCart",
+            name='ShoppingCart',
             fields=[
                 (
-                    "id",
+                    'id',
                     models.BigAutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name="ID",
+                        verbose_name='ID',
                     ),
                 ),
                 (
-                    "recipe",
+                    'recipe',
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="shoppingcarts",
-                        to="api.recipe",
-                        verbose_name="Рецепт",
+                        related_name='shoppingcarts',
+                        to='api.recipe',
+                        verbose_name='Рецепт',
                     ),
                 ),
                 (
-                    "user",
+                    'user',
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="shopping_cart",
+                        related_name='shopping_cart',
                         to=settings.AUTH_USER_MODEL,
-                        verbose_name="Пользователь",
+                        verbose_name='Пользователь',
                     ),
                 ),
             ],
             options={
-                "verbose_name": "Корзина покупок",
-                "verbose_name_plural": "Корзина покупок",
+                'verbose_name': 'Корзина покупок',
+                'verbose_name_plural': 'Корзина покупок',
             },
         ),
         migrations.CreateModel(
-            name="RecipeIngredient",
+            name='RecipeIngredient',
             fields=[
                 (
-                    "id",
+                    'id',
                     models.BigAutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name="ID",
+                        verbose_name='ID',
                     ),
                 ),
                 (
-                    "amount",
+                    'amount',
                     models.PositiveIntegerField(
                         validators=[
-                            django.core.validators.MinValueValidator(1, "Минимум 1")
+                            django.core.validators.MinValueValidator(
+                                1, 'Минимум 1'
+                            )
                         ],
-                        verbose_name="Количество",
+                        verbose_name='Количество',
                     ),
                 ),
                 (
-                    "ingredient",
+                    'ingredient',
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="api.ingredient",
-                        verbose_name="Ингредиент",
+                        to='api.ingredient',
+                        verbose_name='Ингредиент',
                     ),
                 ),
                 (
-                    "recipe",
+                    'recipe',
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="api.recipe",
-                        verbose_name="Рецепт",
+                        to='api.recipe',
+                        verbose_name='Рецепт',
                     ),
                 ),
             ],
             options={
-                "verbose_name": "Ингредиент рецепта",
-                "verbose_name_plural": "Ингредиенты рецепта",
-                "ordering": ("recipe", "ingredient"),
-                "default_related_name": "%(class)ss",
+                'verbose_name': 'Ингредиент рецепта',
+                'verbose_name_plural': 'Ингредиенты рецепта',
+                'ordering': ('recipe', 'ingredient'),
+                'default_related_name': '%(class)ss',
             },
         ),
         migrations.AddField(
-            model_name="recipe",
-            name="ingredients",
+            model_name='recipe',
+            name='ingredients',
             field=models.ManyToManyField(
-                related_name="recipes",
-                through="api.RecipeIngredient",
-                to="api.ingredient",
-                verbose_name="Ингредиенты",
+                related_name='recipes',
+                through='api.RecipeIngredient',
+                to='api.ingredient',
+                verbose_name='Ингредиенты',
             ),
         ),
         migrations.AddField(
-            model_name="recipe",
-            name="tags",
+            model_name='recipe',
+            name='tags',
             field=models.ManyToManyField(
-                related_name="recipes", to="api.tag", verbose_name="Теги"
+                related_name='recipes', to='api.tag', verbose_name='Теги'
             ),
         ),
         migrations.CreateModel(
-            name="Favorite",
+            name='Favorite',
             fields=[
                 (
-                    "id",
+                    'id',
                     models.BigAutoField(
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name="ID",
+                        verbose_name='ID',
                     ),
                 ),
                 (
-                    "recipe",
+                    'recipe',
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="favorites",
-                        to="api.recipe",
-                        verbose_name="Рецепт",
+                        related_name='favorites',
+                        to='api.recipe',
+                        verbose_name='Рецепт',
                     ),
                 ),
                 (
-                    "user",
+                    'user',
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="favorites",
+                        related_name='favorites',
                         to=settings.AUTH_USER_MODEL,
-                        verbose_name="Пользователь",
+                        verbose_name='Пользователь',
                     ),
                 ),
             ],
             options={
-                "verbose_name": "Избранное",
-                "verbose_name_plural": "Избранное",
+                'verbose_name': 'Избранное',
+                'verbose_name_plural': 'Избранное',
             },
         ),
         migrations.AddConstraint(
-            model_name="subscription",
+            model_name='subscription',
             constraint=models.UniqueConstraint(
-                fields=("subscriber", "author"), name="unique_subscription"
+                fields=('subscriber', 'author'), name='unique_subscription'
             ),
         ),
         migrations.AddConstraint(
-            model_name="shoppingcart",
+            model_name='shoppingcart',
             constraint=models.UniqueConstraint(
-                fields=("user", "recipe"), name="unique_shopping_cart"
+                fields=('user', 'recipe'), name='unique_shopping_cart'
             ),
         ),
         migrations.AddConstraint(
-            model_name="recipeingredient",
+            model_name='recipeingredient',
             constraint=models.UniqueConstraint(
-                fields=("recipe", "ingredient"), name="unique_recipe_ingredient"
+                fields=('recipe', 'ingredient'),
+                name='unique_recipe_ingredient',
             ),
         ),
         migrations.AddConstraint(
-            model_name="favorite",
+            model_name='favorite',
             constraint=models.UniqueConstraint(
-                fields=("user", "recipe"), name="unique_favorite"
+                fields=('user', 'recipe'), name='unique_favorite'
             ),
         ),
     ]

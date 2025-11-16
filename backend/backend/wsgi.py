@@ -1,3 +1,5 @@
+"""Конфигурация WSGI для Django проекта Foodgram."""
+
 import os
 
 from django.core.wsgi import get_wsgi_application

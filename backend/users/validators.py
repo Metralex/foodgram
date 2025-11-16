@@ -8,13 +8,11 @@ from django.core.exceptions import ValidationError
 
 def validate_username(value):
     """Проверяет корректность имени пользователя."""
-    allowed_pattern = settings.USERNAME_PATTERN
-
-    invalid_chars = re.sub(allowed_pattern, "", value)
+    invalid_chars = re.sub(settings.USERNAME_PATTERN, '', value)
     if invalid_chars:
-        unique_invalid = "".join(sorted(set(invalid_chars)))
+        unique_invalid = ''.join(sorted(set(invalid_chars)))
         raise ValidationError(
-            f"Обнаружены недопустимые символы: {unique_invalid}"
+            f'Обнаружены недопустимые символы: {unique_invalid}'
         )
 
     forbidden_names = settings.FORBIDDEN_USERNAMES
