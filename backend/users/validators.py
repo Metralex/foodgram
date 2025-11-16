@@ -8,7 +8,6 @@ from django.core.exceptions import ValidationError
 
 def validate_username(value):
     """Проверяет корректность имени пользователя."""
-    
     invalid_chars = re.sub(settings.USERNAME_PATTERN, '', value)
     if invalid_chars:
         unique_invalid = ''.join(sorted(set(invalid_chars)))
