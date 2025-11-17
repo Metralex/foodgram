@@ -145,3 +145,4 @@ media/
 reports/
 
 .toml
+.ruff_cache/
