@@ -38,7 +38,7 @@ class Command(BaseCommand):
         with open(csv_path, 'r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
             for row in reader:
-                tags.append(Tag(name=row['name'], slug=slugify(row['name'])))
+                tags.append(Tag(name=row['name'], slug=row['slug']))
 
         created_count = len(tags)
         Tag.objects.bulk_create(tags, ignore_conflicts=True)
