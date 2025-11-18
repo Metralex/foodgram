@@ -16,8 +16,8 @@ services:
     image: metralex/foodgram_backend:latest
     env_file: ../.env
     volumes:
-      - static_django:/srv/app/collected_static
-      - media:/app/media
+      - static_django:/backend_static
+      - media:/srv/app/media
     depends_on:
       db:
         condition: service_started
