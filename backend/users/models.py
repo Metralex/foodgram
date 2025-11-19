@@ -34,8 +34,6 @@ class User(AbstractUser):
     )
 
     class Meta:
-        """Метаданные модели."""
-
         ordering = ('username',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
@@ -66,8 +64,6 @@ class Subscription(models.Model):
     )
 
     class Meta:
-        """Метаданные модели."""
-
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
         constraints = [

@@ -18,8 +18,6 @@ class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для тегов."""
 
     class Meta:
-        """Метаданные сериализатора."""
-
         model = Tag
         fields = ('id', 'name', 'slug')
         read_only_fields = ('id', 'name', 'slug')
@@ -29,8 +27,6 @@ class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для ингредиентов."""
 
     class Meta:
-        """Метаданные сериализатора."""
-
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit')
         read_only_fields = ('id', 'name', 'measurement_unit')
@@ -42,8 +38,6 @@ class UserSerializer(DjoserUserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
-        """Метаданные сериализатора."""
-
         model = User
         fields = (*DjoserUserSerializer.Meta.fields, 'avatar', 'is_subscribed')
 
@@ -63,8 +57,6 @@ class AvatarSerializer(serializers.ModelSerializer):
     avatar = Base64ImageField()
 
     class Meta:
-        """Метаданные сериализатора."""
-
         model = User
         fields = ('avatar',)
 
@@ -84,8 +76,6 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        """Метаданные сериализатора."""
-
         model = RecipeIngredient
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
@@ -107,8 +97,6 @@ class RecipeSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        """Метаданные сериализатора."""
-
         model = Recipe
         fields = (
             'id',
@@ -222,8 +210,6 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для краткого представления рецептов."""
 
     class Meta:
-        """Метаданные сериализатора."""
-
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
         read_only_fields = fields
@@ -236,8 +222,6 @@ class ReadSubscriptionSerializer(UserSerializer):
     recipes = serializers.SerializerMethodField()
 
     class Meta(UserSerializer.Meta):
-        """Метаданные сериализатора."""
-
         fields = (*UserSerializer.Meta.fields, 'recipes', 'recipes_count')
 
     def get_recipes(self, author_user):
@@ -255,8 +239,6 @@ class FavoriteSerializer(serializers.ModelSerializer):
     """Сериализатор для избранного."""
 
     class Meta:
-        """Метаданные сериализатора."""
-
         model = Favorite
         fields = ('user', 'recipe')
 
@@ -273,8 +255,6 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     """Сериализатор для списка покупок."""
 
     class Meta:
-        """Метаданные сериализатора."""
-
         model = ShoppingCart
         fields = ('user', 'recipe')
 
@@ -293,8 +273,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     """Сериализатор для подписок."""
 
     class Meta:
-        """Метаданные сериализатора."""
-
         model = Subscription
         fields = ('subscriber', 'author')
 

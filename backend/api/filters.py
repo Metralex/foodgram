@@ -25,8 +25,6 @@ class RecipeFilterSet(FilterSet):
     )
 
     class Meta:
-        """Метаданные фильтра."""
-
         model = Recipe
         fields = ('tags', 'author', 'is_favorited', 'is_in_shopping_cart')
 

@@ -34,8 +34,6 @@ class Tag(models.Model):
     )
 
     class Meta:
-        """Метаданные модели."""
-
         ordering = ('name',)
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
@@ -53,8 +51,6 @@ class Ingredient(models.Model):
     )
 
     class Meta:
-        """Метаданные модели."""
-
         ordering = ('name',)
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
@@ -103,8 +99,6 @@ class Recipe(models.Model):
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
     class Meta:
-        """Метаданные модели."""
-
         ordering = ('-pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
@@ -151,8 +145,6 @@ class RecipeIngredient(models.Model):
     )
 
     class Meta:
-        """Метаданные модели."""
-
         ordering = ('recipe', 'ingredient')
         verbose_name = 'Ингредиент рецепта'
         verbose_name_plural = 'Ингредиенты рецепта'
@@ -185,8 +177,6 @@ class UserRecipeRelation(models.Model):
     )
 
     class Meta:
-        """Метаданные модели."""
-
         abstract = True
         ordering = ('user', 'recipe')
 
@@ -198,8 +188,6 @@ class Favorite(UserRecipeRelation):
     """Избранный рецепт пользователя."""
 
     class Meta(UserRecipeRelation.Meta):
-        """Метаданные модели."""
-
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
         constraints = [
@@ -214,8 +202,6 @@ class ShoppingCart(UserRecipeRelation):
     """Рецепт в списке покупок пользователя."""
 
     class Meta(UserRecipeRelation.Meta):
-        """Метаданные модели."""
-
         verbose_name = 'Корзина покупок'
         verbose_name_plural = 'Корзина покупок'
         constraints = [

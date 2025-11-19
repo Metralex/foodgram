@@ -42,11 +42,18 @@ sections = [
 line-length = 79
 
 [tool.ruff.lint]
-select = ["D"]  
+select = [
+    "E",  # pycodestyle errors (PEP 8)
+    "W",  # pycodestyle warnings (PEP 8)
+    "F",  # Pyflakes (логические ошибки)
+    "D",  # pydocstyle (docstrings)
+]
 ignore = [
-    "D100",  
-    "D104",  
-    "D212",  
+    "D100",  # Missing docstring in public module
+    "D104",  # Missing docstring in public package
+    "D212",  # Multi-line docstring summary should start at the first line
+    "E501",  # Line too long (если у вас max-line-length = 120)
+    "D105",
 ]
 
 [tool.ruff.lint.per-file-ignores]
