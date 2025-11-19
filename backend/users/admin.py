@@ -8,7 +8,6 @@ from .models import Subscription, User
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-
     """Админка для управления пользователями."""
 
     list_filter = BaseUserAdmin.list_filter + ('email',)
@@ -30,7 +29,6 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
-
     """Админка для управления подписками."""
 
     search_fields = ('author__username', 'subscriber__username')

@@ -21,7 +21,6 @@ def generate_short_code(length: int = const.SHORT_CODE_LENGTH):
 
 
 class Tag(models.Model):
-
     """Тег для категоризации рецептов."""
 
     slug = models.SlugField(
@@ -35,7 +34,6 @@ class Tag(models.Model):
     )
 
     class Meta:
-
         """Метаданные модели."""
 
         ordering = ('name',)
@@ -47,7 +45,6 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-
     """Ингредиент для использования в рецептах."""
 
     name = models.CharField('Название', max_length=const.CHAR_MAX_LENGTH)
@@ -56,7 +53,6 @@ class Ingredient(models.Model):
     )
 
     class Meta:
-
         """Метаданные модели."""
 
         ordering = ('name',)
@@ -68,7 +64,6 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
-
     """Рецепт с ингредиентами и тегами."""
 
     name = models.CharField('Название', max_length=const.CHAR_MAX_LENGTH)
@@ -108,7 +103,6 @@ class Recipe(models.Model):
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
     class Meta:
-
         """Метаданные модели."""
 
         ordering = ('-pub_date',)
@@ -135,7 +129,6 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
-
     """Связь между рецептом и ингредиентом с количеством."""
 
     recipe = models.ForeignKey(
@@ -158,7 +151,6 @@ class RecipeIngredient(models.Model):
     )
 
     class Meta:
-
         """Метаданные модели."""
 
         ordering = ('recipe', 'ingredient')
@@ -177,7 +169,6 @@ class RecipeIngredient(models.Model):
 
 
 class UserRecipeRelation(models.Model):
-
     """Абстрактная модель связи пользователя с рецептом."""
 
     user = models.ForeignKey(
@@ -194,7 +185,6 @@ class UserRecipeRelation(models.Model):
     )
 
     class Meta:
-
         """Метаданные модели."""
 
         abstract = True
@@ -205,11 +195,9 @@ class UserRecipeRelation(models.Model):
 
 
 class Favorite(UserRecipeRelation):
-
     """Избранный рецепт пользователя."""
 
     class Meta(UserRecipeRelation.Meta):
-
         """Метаданные модели."""
 
         verbose_name = 'Избранное'
@@ -223,11 +211,9 @@ class Favorite(UserRecipeRelation):
 
 
 class ShoppingCart(UserRecipeRelation):
-
     """Рецепт в списке покупок пользователя."""
 
     class Meta(UserRecipeRelation.Meta):
-
         """Метаданные модели."""
 
         verbose_name = 'Корзина покупок'

@@ -30,7 +30,6 @@ ALREADY_IN_FAVORITES_ERROR = 'Рецепт уже есть в избранном
 
 
 class UserViewSet(DjoserUserViewSet):
-
     """Управление пользователями."""
 
     def get_permissions(self):
@@ -111,7 +110,6 @@ class UserViewSet(DjoserUserViewSet):
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
-
     """Теги рецептов."""
 
     permission_classes = (AllowAny,)
@@ -121,7 +119,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-
     """Ингредиенты."""
 
     permission_classes = (AllowAny,)
@@ -133,7 +130,6 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-
     """Управление рецептами."""
 
     filterset_class = filters.RecipeFilterSet

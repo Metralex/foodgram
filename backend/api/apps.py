@@ -4,7 +4,6 @@ from django.apps import AppConfig
 
 
 class ApiConfig(AppConfig):
-
     """Настройка приложения API для работы с рецептами."""
 
     name = 'api'

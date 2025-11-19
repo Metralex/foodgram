@@ -11,7 +11,6 @@ from recipes.models import Tag
 
 
 class Command(BaseCommand):
-
     """Импорт тегов из CSV файла в базу данных."""
 
     help = 'Import tags from CSV file located in data/recipes_tag.csv'

@@ -7,7 +7,6 @@ from .models import Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-
     """Админка для управления тегами рецептов."""
 
     prepopulated_fields = {'slug': ('name',)}
@@ -18,7 +17,6 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-
     """Админка для управления ингредиентами."""
 
     list_filter = ('measurement_unit',)
@@ -28,7 +26,6 @@ class IngredientAdmin(admin.ModelAdmin):
 
 
 class RecipeIngredientInline(admin.TabularInline):
-
     """Inline редактор для ингредиентов рецепта."""
 
     extra = 1
@@ -39,7 +36,6 @@ class RecipeIngredientInline(admin.TabularInline):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-
     """Админка для управления рецептами."""
 
     filter_horizontal = ('tags',)
@@ -65,7 +61,6 @@ class RecipeAdmin(admin.ModelAdmin):
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
-
     """Админка для управления избранными рецептами."""
 
     search_fields = ('recipe__name', 'user__username')
@@ -76,7 +71,6 @@ class FavoriteAdmin(admin.ModelAdmin):
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
-
     """Админка для управления списками покупок."""
 
     search_fields = ('recipe__name', 'user__username')

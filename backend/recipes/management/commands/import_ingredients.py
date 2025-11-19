@@ -11,7 +11,6 @@ from recipes.models import Ingredient
 
 
 class Command(BaseCommand):
-
     """Импорт ингредиентов из CSV файла в базу данных."""
 
     help = 'Import ingredients from CSV file located in data/ingredients.csv'

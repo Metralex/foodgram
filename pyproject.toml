@@ -22,6 +22,13 @@ skip_glob = [
 default_section = "THIRDPARTY"
 src_paths = ["backend"]
 known_django = "django"
+known_third_party = [
+    "djoser",
+    "drf_extra_fields",
+    "rest_framework",
+    "django_filters",
+    "dotenv"
+]
 sections = [
     "FUTURE",
     "STDLIB",
@@ -39,7 +46,6 @@ select = ["D"]
 ignore = [
     "D100",  
     "D104",  
-    "D211",  
     "D212",  
 ]
 
@@ -49,3 +55,36 @@ ignore = [
 
 [tool.ruff.format]
 quote-style = "single"
+
+
+
+[tool.flake8]
+max-line-length = 120
+show-source = true
+statistics = true
+inline-quotes = "single"
+ignore = [
+    "E121",
+    "E126",
+    "W504",
+    "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107",
+    "D401",
+    "Q000"
+]
+exclude = [
+    "*base.py",
+    "venv*",
+    ".git",
+    "*/migrations/*",
+    "*__pycache__*",
+    "*node_modules*",
+    "*docs*",
+]
+
+[tool.flake8.per-file-ignores]
+"*/schemas.py" = ["N805"]
+"*/admin.py" = ["JS101", "JS102"]
+"*/*.py" = ["E722", "E127"]
+"*/migrations/*" = ["E501"]
+"*/tests/*" = ["D200", "D205", "D400"]
+"*/settings/*.py" = ["F405"]
