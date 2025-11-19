@@ -43,7 +43,6 @@ class User(AbstractUser):
         verbose_name_plural = 'Пользователи'
 
     def __str__(self):
-        """Возвращает строковое представление пользователя."""
         return self.username
 
     @property
@@ -87,5 +86,4 @@ class Subscription(models.Model):
         ]
 
     def __str__(self):
-        """Возвращает строковое представление подписки."""
         return f'{self.subscriber} -> {self.author}'

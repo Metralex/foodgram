@@ -43,7 +43,6 @@ class Tag(models.Model):
         verbose_name_plural = 'Теги'
 
     def __str__(self):
-        """Возвращает строковое представление тега."""
         return self.name
 
 
@@ -65,7 +64,6 @@ class Ingredient(models.Model):
         verbose_name_plural = 'Ингредиенты'
 
     def __str__(self):
-        """Возвращает строковое представление ингредиента."""
         return f'{self.name}, {self.measurement_unit}'
 
 
@@ -118,11 +116,9 @@ class Recipe(models.Model):
         verbose_name_plural = 'Рецепты'
 
     def __str__(self):
-        """Возвращает строковое представление рецепта."""
         return self.name
 
     def save(self, *args, **kwargs):
-        """Сохраняет рецепт с генерацией короткого кода."""
         if not self.short_url_code:
             self.short_url_code = generate_short_code()
 
@@ -177,7 +173,6 @@ class RecipeIngredient(models.Model):
         ]
 
     def __str__(self):
-        """Возвращает строковое представление связи."""
         return f'{self.recipe} - {self.ingredient}'
 
 
@@ -206,7 +201,6 @@ class UserRecipeRelation(models.Model):
         ordering = ('user', 'recipe')
 
     def __str__(self):
-        """Возвращает строковое представление связи."""
         return f'{self.user} - {self.recipe}'
 
 
