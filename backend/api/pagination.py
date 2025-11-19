@@ -5,6 +5,7 @@ from rest_framework.pagination import PageNumberPagination
 
 
 class LimitPageNumberPagination(PageNumberPagination):
+
     """Пагинация."""
 
     max_page_size = settings.MAX_PAGE_SIZE

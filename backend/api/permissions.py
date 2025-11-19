@@ -4,6 +4,7 @@ from rest_framework.permissions import SAFE_METHODS, IsAuthenticatedOrReadOnly
 
 
 class IsAuthorOrReadOnly(IsAuthenticatedOrReadOnly):
+
     """Разрешение на изменение только автором объекта."""
 
     message = 'Изменять объект может только его автор.'

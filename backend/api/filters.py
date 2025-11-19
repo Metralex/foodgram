@@ -10,12 +10,14 @@ from rest_framework.filters import SearchFilter
 
 
 class IngredientFilter(SearchFilter):
+
     """Фильтр поиска ингредиентов по имени."""
 
     search_param = 'name'
 
 
 class RecipeFilterSet(FilterSet):
+
     """Набор фильтров для рецептов."""
 
     is_in_shopping_cart = BooleanFilter(method='filter_shopping_cart')
@@ -27,6 +29,7 @@ class RecipeFilterSet(FilterSet):
     )
 
     class Meta:
+
         """Метаданные фильтра."""
 
         model = Recipe

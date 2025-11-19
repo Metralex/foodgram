@@ -14,6 +14,7 @@ from .validators import validate_username
 
 
 class User(AbstractUser):
+
     """Кастомная модель пользователя с поддержкой аватара."""
 
     USERNAME_FIELD = 'email'
@@ -37,6 +38,7 @@ class User(AbstractUser):
     )
 
     class Meta:
+
         """Метаданные модели."""
 
         ordering = ('username',)
@@ -54,6 +56,7 @@ class User(AbstractUser):
 
 
 class Subscription(models.Model):
+
     """Подписка пользователя на автора."""
 
     subscriber = models.ForeignKey(
@@ -70,6 +73,7 @@ class Subscription(models.Model):
     )
 
     class Meta:
+
         """Метаданные модели."""
 
         verbose_name = 'Подписка'
