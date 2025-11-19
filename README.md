@@ -171,7 +171,7 @@ Workflow `.github/workflows/main.yml` выполняет:
 - ip сервера: 62.84.120.171
 - домен: https://foodinstallation.work.gd/
 
-  Для входа в админку Django:
+Для входа в админку Django:
 - почта: root@mail.ru
 - пароль: root
 
