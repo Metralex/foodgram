@@ -168,10 +168,6 @@ Workflow `.github/workflows/main.yml` выполняет:
 
 ## Полезные ссылки
 
-- [Postman-коллекция](postman_collection/foodgram.postman_collection.json)
-- [OpenAPI (schema)](docs/openapi-schema.yml)
-- [Redoc (HTML)](docs/redoc.html)
-
 - ip сервера: 62.84.120.171
 - домен: https://foodinstallation.work.gd/
 
