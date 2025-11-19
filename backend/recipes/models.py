@@ -9,6 +9,7 @@ from django.db import IntegrityError, models
 
 from . import constants as const
 
+
 User = get_user_model()
 
 

@@ -4,6 +4,7 @@ from io import BytesIO
 
 from django.utils import timezone
 
+
 DATETIME_FORMAT = '%d-%m-%Y %H:%M'
 ENCODING = 'utf-8'
 

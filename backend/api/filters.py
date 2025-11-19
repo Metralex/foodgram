@@ -1,12 +1,10 @@
 """Фильтры для API Foodgram."""
 
 from django_filters.rest_framework import FilterSet
-from django_filters.rest_framework.filters import (
-    BooleanFilter,
-    ModelMultipleChoiceFilter,
-)
-from recipes.models import Recipe, Tag
+from django_filters.rest_framework.filters import BooleanFilter, ModelMultipleChoiceFilter
 from rest_framework.filters import SearchFilter
+
+from recipes.models import Recipe, Tag
 
 
 class IngredientFilter(SearchFilter):

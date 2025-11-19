@@ -1,9 +1,11 @@
 """URL-конфигурация для API Foodgram."""
 
-from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
+from django.urls import include, path
+
 from . import views
+
 
 app_name = 'api'
 

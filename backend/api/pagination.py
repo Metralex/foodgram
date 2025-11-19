@@ -1,7 +1,8 @@
 """Классы пагинации для API Foodgram."""
 
-from django.conf import settings
 from rest_framework.pagination import PageNumberPagination
+
+from django.conf import settings
 
 
 class LimitPageNumberPagination(PageNumberPagination):

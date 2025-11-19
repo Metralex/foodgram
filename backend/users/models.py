@@ -4,11 +4,8 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import F, Q
-from users.constants import (
-    EMAIL_MAX_LENGTH,
-    NAME_MAX_LENGTH,
-    USERNAME_MAX_LENGTH,
-)
+
+from users.constants import EMAIL_MAX_LENGTH, NAME_MAX_LENGTH, USERNAME_MAX_LENGTH
 
 from .validators import validate_username
 
