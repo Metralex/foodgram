@@ -162,7 +162,7 @@ GET /api/recipes/download_shopping_cart/
 Workflow `.github/workflows/main.yml` выполняет:
 
 1. Развёртывание матрицы Python 3.8–3.12, запуск flake8 и unit-тестов.
-2. Сборку и публикацию Docker-образов backend и frontend в Docker Hub (только ветки `main`/`master`).
+2. Сборку и публикацию Docker-образов backend и frontend в Docker Hub.
 3. Деплой на удалённый сервер через SSH (`docker compose`), обновление миграций и статики.
 4. Уведомления в Telegram о результатах (успех/ошибка).
 
@@ -171,6 +171,12 @@ Workflow `.github/workflows/main.yml` выполняет:
 - [Postman-коллекция](postman_collection/foodgram.postman_collection.json)
 - [OpenAPI (schema)](docs/openapi-schema.yml)
 - [Redoc (HTML)](docs/redoc.html)
+- [ip сервера](62.84.120.171)
+- [домен](https://foodinstallation.work.gd/)
+
+Для входа в админку Django:
+- [почта](art010600@yandex.ru)
+- [пароль](root)
 
 ## Автор
 
