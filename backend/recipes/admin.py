@@ -43,7 +43,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     filter_horizontal = ('tags',)
     inlines = [RecipeIngredientInline]
-    list_filter = ('pub_date', 'tags', 'author')
+    list_filter = ('tags', 'author')
     search_fields = ('author__username', 'name', 'text')
     list_display = (
         'name',
