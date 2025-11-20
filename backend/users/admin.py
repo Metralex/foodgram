@@ -1,6 +1,6 @@
 """Конфигурация Django admin для пользователей."""
 
-from admin_autocomplete_filter.filters import AutocompleteFilter
+from admin_auto_filters.filters import AutocompleteFilter
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
@@ -13,7 +13,6 @@ class SubscriberFilter(AutocompleteFilter):
 
     title = 'Подписчик'
     field_name = 'subscriber'
-    autocomplete_search_field = 'username'
 
 
 class AuthorFilter(AutocompleteFilter):
@@ -21,7 +20,6 @@ class AuthorFilter(AutocompleteFilter):
 
     title = 'Автор'
     field_name = 'author'
-    autocomplete_search_field = 'username'
 
 
 @admin.register(User)
@@ -51,7 +49,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
     search_fields = ('author__username', 'subscriber__username')
     list_display = ('subscriber', 'author', 'id')
-    list_filter = (SubscriberFilter, AuthorFilter)
+    list_filter = ([SubscriberFilter], [AuthorFilter])
     autocomplete_fields = ('subscriber', 'author')
     list_select_related = ('subscriber', 'author')
 

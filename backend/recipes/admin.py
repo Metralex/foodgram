@@ -1,6 +1,6 @@
 """Конфигурация Django admin для рецептов."""
 
-from admin_autocomplete_filter.filters import AutocompleteFilter
+from admin_auto_filters.filters import AutocompleteFilter
 
 from django.contrib import admin
 from django.db.models import Count
@@ -15,7 +15,6 @@ class AuthorFilter(AutocompleteFilter):
 
     title = 'Автор'
     field_name = 'author'
-    autocomplete_search_field = 'username'
 
 
 class UserFilter(AutocompleteFilter):
@@ -23,7 +22,6 @@ class UserFilter(AutocompleteFilter):
 
     title = 'Пользователь'
     field_name = 'user'
-    autocomplete_search_field = 'username'
 
 
 @admin.register(Tag)
@@ -61,7 +59,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     filter_horizontal = ('tags',)
     inlines = [RecipeIngredientInline]
-    list_filter = ('tags', AutocompleteFilter(field='author'))
+    list_filter = ('tags', [AuthorFilter])
     search_fields = ('author__username', 'name')
     list_display = (
         'name',
@@ -96,7 +94,7 @@ class FavoriteAdmin(admin.ModelAdmin):
 
     search_fields = ('recipe__name', 'user__username')
     list_display = ('user', 'recipe', 'id')
-    list_filter = (UserFilter,)
+    list_filter = ([UserFilter])
     autocomplete_fields = ('user', 'recipe')
     list_select_related = ('user', 'recipe', 'recipe__author')
 
@@ -107,6 +105,6 @@ class ShoppingCartAdmin(admin.ModelAdmin):
 
     search_fields = ('recipe__name', 'user__username')
     list_display = ('user', 'recipe', 'id')
-    list_filter = (UserFilter,)
+    list_filter = ([UserFilter])
     autocomplete_fields = ('user', 'recipe')
     list_select_related = ('user', 'recipe', 'recipe__author')

@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'djoser',
-    'admin_autocomplete_filter',
+    'admin_auto_filters',
     'users',
     'recipes',
     'api',
