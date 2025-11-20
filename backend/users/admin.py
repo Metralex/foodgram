@@ -49,7 +49,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
     search_fields = ('author__username', 'subscriber__username')
     list_display = ('subscriber', 'author', 'id')
-    list_filter = ([SubscriberFilter], [AuthorFilter])
+    list_filter = [SubscriberFilter, AuthorFilter]  # Исправлено: список с классами
     autocomplete_fields = ('subscriber', 'author')
     list_select_related = ('subscriber', 'author')
 

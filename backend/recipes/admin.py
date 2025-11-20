@@ -59,7 +59,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     filter_horizontal = ('tags',)
     inlines = [RecipeIngredientInline]
-    list_filter = ('tags', [AuthorFilter])
+    list_filter = ['tags', AuthorFilter]
     search_fields = ('author__username', 'name')
     list_display = (
         'name',
@@ -94,7 +94,7 @@ class FavoriteAdmin(admin.ModelAdmin):
 
     search_fields = ('recipe__name', 'user__username')
     list_display = ('user', 'recipe', 'id')
-    list_filter = ([UserFilter])
+    list_filter = [UserFilter]
     autocomplete_fields = ('user', 'recipe')
     list_select_related = ('user', 'recipe', 'recipe__author')
 
@@ -105,6 +105,6 @@ class ShoppingCartAdmin(admin.ModelAdmin):
 
     search_fields = ('recipe__name', 'user__username')
     list_display = ('user', 'recipe', 'id')
-    list_filter = ([UserFilter])
+    list_filter = [UserFilter]
     autocomplete_fields = ('user', 'recipe')
     list_select_related = ('user', 'recipe', 'recipe__author')
