@@ -35,3 +35,8 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ('subscriber', 'author', 'id')
     list_filter = ('subscriber', 'author')
     autocomplete_fields = ('subscriber', 'author')
+    list_select_related = ('subscriber', 'author')
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related('subscriber', 'author')    

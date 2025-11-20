@@ -5,6 +5,8 @@ from django.contrib import admin
 from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                      ShoppingCart, Tag)
 
+from django.db.models import Count
+
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
@@ -50,14 +52,24 @@ class RecipeAdmin(admin.ModelAdmin):
         'cooking_time',
         'get_favorites_count',
     )
-    readonly_fields = ('pub_date', 'short_url_code', 'get_favorites_count')
+    readonly_fields = ('short_url_code', 'get_favorites_count')
     ordering = ('-pub_date',)
+    list_select_related = ('author',)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return (
+            queryset.select_related('author')
+            .prefetch_related(
+                'tags',
+                'ingredients',
+                'recipeingredient_set__ingredient',
+            )
+            .annotate(favorites_count=Count('favorites', distinct=True))
+        )
 
     def get_favorites_count(self, obj: Recipe) -> int:
-        """Возвращает количество добавлений в избранное."""
-        return obj.favorites.count()
-
-    get_favorites_count.short_description = 'Добавлений в избранное'
+        return obj.favorites_count
 
 
 @admin.register(Favorite)
@@ -68,6 +80,8 @@ class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe', 'id')
     list_filter = ('user',)
     autocomplete_fields = ('user', 'recipe')
+    list_select_related = ('user', 'recipe', 'recipe__author')
+
 
 
 @admin.register(ShoppingCart)
@@ -78,3 +92,4 @@ class ShoppingCartAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe', 'id')
     list_filter = ('user',)
     autocomplete_fields = ('user', 'recipe')
+    list_select_related = ('user', 'recipe', 'recipe__author')
