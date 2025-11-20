@@ -24,6 +24,13 @@ class UserFilter(AutocompleteFilter):
     field_name = 'user'
 
 
+class RecipeFilter(AutocompleteFilter):
+    """Фильтр по рецепту с автодополнением."""
+
+    title = 'Рецепт'
+    field_name = 'recipe'
+
+
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     """Админка для управления тегами рецептов."""
@@ -92,9 +99,8 @@ class RecipeAdmin(admin.ModelAdmin):
 class FavoriteAdmin(admin.ModelAdmin):
     """Админка для управления избранными рецептами."""
 
-    search_fields = ('recipe__name', 'user__username')
     list_display = ('user', 'recipe', 'id')
-    list_filter = [UserFilter]
+    list_filter = [UserFilter, RecipeFilter]
     autocomplete_fields = ('user', 'recipe')
     list_select_related = ('user', 'recipe', 'recipe__author')
 
@@ -103,8 +109,7 @@ class FavoriteAdmin(admin.ModelAdmin):
 class ShoppingCartAdmin(admin.ModelAdmin):
     """Админка для управления списками покупок."""
 
-    search_fields = ('recipe__name', 'user__username')
     list_display = ('user', 'recipe', 'id')
-    list_filter = [UserFilter]
+    list_filter = [UserFilter, RecipeFilter]
     autocomplete_fields = ('user', 'recipe')
     list_select_related = ('user', 'recipe', 'recipe__author')

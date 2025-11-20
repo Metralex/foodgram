@@ -47,7 +47,6 @@ class UserAdmin(BaseUserAdmin):
 class SubscriptionAdmin(admin.ModelAdmin):
     """Админка для управления подписками."""
 
-    search_fields = ('author__username', 'subscriber__username')
     list_display = ('subscriber', 'author', 'id')
     list_filter = [SubscriberFilter, AuthorFilter]
     autocomplete_fields = ('subscriber', 'author')
