@@ -32,4 +32,4 @@ drf-extra-fields==3.7.0
 django-extensions==3.2.3
 
 # Admin autocomplete filter
-django-admin-autocomplete-filter==0.9.1
+django-admin-autocomplete-filter==0.7.1
