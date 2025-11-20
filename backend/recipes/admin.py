@@ -44,7 +44,7 @@ class RecipeAdmin(admin.ModelAdmin):
     filter_horizontal = ('tags',)
     inlines = [RecipeIngredientInline]
     list_filter = ('tags', 'author')
-    search_fields = ('author__username', 'name', 'text')
+    search_fields = ('author__username', 'name')
     list_display = (
         'name',
         'author',
