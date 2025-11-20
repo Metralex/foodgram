@@ -16,8 +16,9 @@ from django.http import FileResponse, HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404
 
 from recipes import utils
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
+from recipes.models import (
+    Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag,
+)
 from users.models import Subscription
 
 from . import filters, pagination, permissions, serializers

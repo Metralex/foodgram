@@ -1,11 +1,11 @@
 """Конфигурация Django admin для рецептов."""
 
 from django.contrib import admin
-
-from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                     ShoppingCart, Tag)
-
 from django.db.models import Count
+
+from .models import (
+    Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag,
+)
 
 
 @admin.register(Tag)
@@ -81,7 +81,6 @@ class FavoriteAdmin(admin.ModelAdmin):
     list_filter = ('user',)
     autocomplete_fields = ('user', 'recipe')
     list_select_related = ('user', 'recipe', 'recipe__author')
-
 
 
 @admin.register(ShoppingCart)

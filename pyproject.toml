@@ -5,7 +5,8 @@ include = '\.pyi?$'
 quote-style = "single"
 
 [tool.isort]
-line_length = 120
+known_first_party = ["api", "backend", "recipes", "users"]
+line_length = 79
 multi_line_output = 5
 lines_after_imports = 2
 include_trailing_comma = true
@@ -22,13 +23,6 @@ skip_glob = [
 default_section = "THIRDPARTY"
 src_paths = ["backend"]
 known_django = "django"
-known_third_party = [
-    "djoser",
-    "drf_extra_fields",
-    "rest_framework",
-    "django_filters",
-    "dotenv"
-]
 sections = [
     "FUTURE",
     "STDLIB",
@@ -66,7 +60,7 @@ quote-style = "single"
 
 
 [tool.flake8]
-max-line-length = 120
+max-line-length = 79
 show-source = true
 statistics = true
 inline-quotes = "single"

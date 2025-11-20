@@ -7,8 +7,9 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
+from recipes.models import (
+    Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag,
+)
 from users.models import Subscription
 
 
